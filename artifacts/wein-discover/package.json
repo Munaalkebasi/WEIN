@@ -1,5 +1,5 @@
 {
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.34.5",
   "name": "@workspace/wein-discover",
   "version": "0.0.0",
   "private": true,
