@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+/**
+ * Authenticated WEIN user ID supplied by the future auth adapter.
+ */
+export type ActorHeaderParameter = string;

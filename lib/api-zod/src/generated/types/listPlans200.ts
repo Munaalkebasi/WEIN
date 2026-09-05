@@ -5,7 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { Plan } from './plan';
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListPlans200 = {
+  plans: Plan[];
+};

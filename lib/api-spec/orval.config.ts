@@ -63,6 +63,7 @@ export default defineConfig({
             body: ['bigint', 'date'],
             response: ['bigint', 'date'],
           },
+          version: 3,
         },
         useDates: true,
         useBigInt: true,

@@ -1,43 +1,41 @@
-import path from 'path';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import path from "path";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
+import { discoveryApiPlugin } from "./src/server/discovery/vite-plugin";
 
 const port = Number(process.env.PORT || 5173);
-const basePath = process.env.BASE_PATH || '/';
+const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({
   base: basePath,
 
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [discoveryApiPlugin(), react(), tailwindcss()],
 
   resolve: {
     alias: {
-      '@': path.resolve(import.meta.dirname, 'src'),
-      '@assets': path.resolve(
+      "@": path.resolve(import.meta.dirname, "src"),
+      "@assets": path.resolve(
         import.meta.dirname,
-        '..',
-        '..',
-        'attached_assets',
+        "..",
+        "..",
+        "attached_assets",
       ),
     },
-    dedupe: ['react', 'react-dom'],
+    dedupe: ["react", "react-dom"],
   },
 
   root: path.resolve(import.meta.dirname),
 
   build: {
-    outDir: path.resolve(import.meta.dirname, 'dist/public'),
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
 
   server: {
     port,
     strictPort: true,
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     allowedHosts: true,
     fs: {
       strict: true,
@@ -46,7 +44,7 @@ export default defineConfig({
 
   preview: {
     port,
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     allowedHosts: true,
   },
 });

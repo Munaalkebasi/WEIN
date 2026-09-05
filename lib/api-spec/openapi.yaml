@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: plans
+    description: Group planning and memories
 paths:
   /healthz:
     get:
@@ -24,7 +26,400 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /plans:
+    get:
+      operationId: listPlans
+      tags: [plans]
+      summary: List plans for the current member
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/PlanStatus"
+      responses:
+        "200":
+          description: Plans the actor belongs to
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plans]
+                properties:
+                  plans:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Plan"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createPlan
+      tags: [plans]
+      summary: Create a plan and make the actor its owner
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlanRequest"
+      responses:
+        "201":
+          description: Created plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /plans/{planId}:
+    get:
+      operationId: getPlanWorkspace
+      tags: [plans]
+      summary: Read the complete workspace for a plan
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      responses:
+        "200":
+          description: Plan workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanWorkspace"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/members:
+    post:
+      operationId: addPlanMember
+      tags: [plans]
+      summary: Add a member to a plan
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMemberRequest"
+      responses:
+        "201":
+          description: Added member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanMember"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/messages:
+    post:
+      operationId: addPlanMessage
+      tags: [plans]
+      summary: Add a message to a plan chat
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageRequest"
+      responses:
+        "201":
+          description: Created message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanMessage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/shared-items:
+    post:
+      operationId: addSharedPlanItem
+      tags: [plans]
+      summary: Share a WEIN place, event, or activity by reference
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSharedItemRequest"
+      responses:
+        "201":
+          description: Shared discovery item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedItem"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/polls:
+    post:
+      operationId: createPlanPoll
+      tags: [plans]
+      summary: Create a place, date, or time poll
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePollRequest"
+      responses:
+        "201":
+          description: Created poll
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanPoll"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/polls/{pollId}/options:
+    post:
+      operationId: addPlanPollSuggestion
+      tags: [plans]
+      summary: Add a permitted suggestion to an open poll
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+        - $ref: "#/components/parameters/PollId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePollOptionRequest"
+      responses:
+        "201":
+          description: Added option
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollOption"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/polls/{pollId}/votes:
+    post:
+      operationId: voteOnPlanPoll
+      tags: [plans]
+      summary: Cast or replace the actor's vote on a poll
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+        - $ref: "#/components/parameters/PollId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteRequest"
+      responses:
+        "200":
+          description: Poll with derived results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanPoll"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/finalize:
+    post:
+      operationId: finalizePlan
+      tags: [plans]
+      summary: Lock the official place, date, and time
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinalizePlanRequest"
+      responses:
+        "200":
+          description: Official decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanDecision"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/media:
+    post:
+      operationId: registerPlanMedia
+      tags: [plans]
+      summary: Register media metadata without uploading binary content
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterMediaRequest"
+      responses:
+        "201":
+          description: Media metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanMedia"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /plans/{planId}/complete:
+    post:
+      operationId: completePlan
+      tags: [plans]
+      summary: Transition a finalized plan into a member-visible memory
+      parameters:
+        - $ref: "#/components/parameters/ActorHeader"
+        - $ref: "#/components/parameters/PlanId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompletePlanRequest"
+      responses:
+        "200":
+          description: Completed plan and memory metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plan, memory]
+                properties:
+                  plan:
+                    $ref: "#/components/schemas/Plan"
+                  memory:
+                    $ref: "#/components/schemas/PlanMemory"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
+  securitySchemes:
+    actorHeader:
+      type: apiKey
+      in: header
+      name: X-User-Id
+      description: Temporary actor boundary until an authentication provider is integrated.
+  parameters:
+    ActorHeader:
+      name: X-User-Id
+      in: header
+      required: true
+      description: Authenticated WEIN user ID supplied by the future auth adapter.
+      schema:
+        type: string
+        minLength: 1
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PollId:
+      name: pollId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Unauthorized:
+      description: Missing actor identity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Actor is not a member or lacks the permission
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ValidationError:
+      description: Request failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +428,308 @@ components:
           type: string
       required:
         - status
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    PlanPrivacy:
+      type: string
+      enum: [private, public]
+    PlanStatus:
+      type: string
+      enum: [planning, confirmed, completed, archived]
+    PlanMemberRole:
+      type: string
+      enum: [owner, member]
+    MessageType:
+      type: string
+      enum: [text, emoji, shared_item, poll, media, system]
+    EntityType:
+      type: string
+      enum: [place, event, activity]
+    PollKind:
+      type: string
+      enum: [place, date, time]
+    PollSelectionMode:
+      type: string
+      enum: [single, multiple]
+    PollStatus:
+      type: string
+      enum: [open, closed]
+    PollOptionKind:
+      type: string
+      enum: [place, event, activity, date, time]
+    MediaKind:
+      type: string
+      enum: [photo, video]
+    MediaStorageStatus:
+      type: string
+      enum: [metadata_only, pending, available, failed]
+    AttendanceStatus:
+      type: string
+      enum: [invited, going, maybe, not_going]
+    TicketStatus:
+      type: string
+      enum: [not_applicable, unclaimed, user_reported, externally_confirmed]
+    MemoryVisibility:
+      type: string
+      enum: [private, members]
+    Plan:
+      type: object
+      required: [id, creatorUserId, name, privacy, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        creatorUserId: { type: string }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        privacy: { $ref: "#/components/schemas/PlanPrivacy" }
+        status: { $ref: "#/components/schemas/PlanStatus" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreatePlanRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 2000 }
+        privacy: { $ref: "#/components/schemas/PlanPrivacy" }
+    PlanMember:
+      type: object
+      required: [id, planId, userId, role, canFinalize, canManagePolls, joinedAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        userId: { type: string }
+        displayName: { type: string, nullable: true }
+        role: { $ref: "#/components/schemas/PlanMemberRole" }
+        canFinalize: { type: boolean }
+        canManagePolls: { type: boolean }
+        joinedAt: { type: string, format: date-time }
+    AddMemberRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string, minLength: 1 }
+        displayName: { type: string, maxLength: 120 }
+        canFinalize: { type: boolean }
+        canManagePolls: { type: boolean }
+    PlanMessage:
+      type: object
+      required: [id, planId, authorUserId, type, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        authorUserId: { type: string }
+        type: { $ref: "#/components/schemas/MessageType" }
+        body: { type: string, nullable: true }
+        replyToMessageId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+    CreateMessageRequest:
+      type: object
+      required: [type]
+      properties:
+        type: { $ref: "#/components/schemas/MessageType" }
+        body: { type: string, maxLength: 4000 }
+        replyToMessageId: { type: string, format: uuid, nullable: true }
+    RichCard:
+      type: object
+      description: Optional fields resolved from the canonical Discover entity. Null means no provider data is available yet.
+      required: [entityType, entityId, title, category, imageUrl, rating, distanceKm, priceLevel, openStatus, ageRestriction]
+      properties:
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: string }
+        title: { type: string, nullable: true }
+        category: { type: string, nullable: true }
+        imageUrl: { type: string, format: uri, nullable: true }
+        rating: { type: number, nullable: true }
+        distanceKm: { type: number, nullable: true }
+        priceLevel: { type: integer, nullable: true }
+        openStatus: { type: string, nullable: true }
+        ageRestriction: { type: string, nullable: true }
+    SharedItem:
+      type: object
+      required: [id, planId, sharedByUserId, entityType, entityId, card, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        sharedByUserId: { type: string }
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: string }
+        card: { $ref: "#/components/schemas/RichCard" }
+        messageId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+    CreateSharedItemRequest:
+      type: object
+      required: [entityType, entityId]
+      properties:
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: string, minLength: 1 }
+        messageId: { type: string, format: uuid, nullable: true }
+    PollOption:
+      type: object
+      required: [id, pollId, kind, entityId, value, addedByUserId, isSuggestion, voteCount, percentage, selectedByMe, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        pollId: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/PollOptionKind" }
+        entityId: { type: string, nullable: true }
+        value: { type: string, nullable: true }
+        card: { allOf: [{ $ref: "#/components/schemas/RichCard" }], nullable: true }
+        addedByUserId: { type: string }
+        isSuggestion: { type: boolean }
+        voteCount: { type: integer }
+        percentage: { type: number }
+        selectedByMe: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    CreatePollOptionRequest:
+      type: object
+      required: [kind]
+      properties:
+        kind: { $ref: "#/components/schemas/PollOptionKind" }
+        entityId: { type: string }
+        value: { type: string }
+    PlanPoll:
+      type: object
+      required: [id, planId, createdByUserId, kind, question, selectionMode, allowSuggestions, status, options, totalVotes, expiresAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        createdByUserId: { type: string }
+        kind: { $ref: "#/components/schemas/PollKind" }
+        question: { type: string }
+        selectionMode: { $ref: "#/components/schemas/PollSelectionMode" }
+        allowSuggestions: { type: boolean }
+        status: { $ref: "#/components/schemas/PollStatus" }
+        expiresAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        options:
+          type: array
+          items: { $ref: "#/components/schemas/PollOption" }
+        totalVotes: { type: integer }
+    CreatePollRequest:
+      type: object
+      required: [kind, question, options]
+      properties:
+        kind: { $ref: "#/components/schemas/PollKind" }
+        question: { type: string, minLength: 1, maxLength: 240 }
+        selectionMode: { $ref: "#/components/schemas/PollSelectionMode" }
+        allowSuggestions: { type: boolean }
+        expiresAt: { type: string, format: date-time }
+        options:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: "#/components/schemas/CreatePollOptionRequest" }
+    VoteRequest:
+      type: object
+      required: [optionIds]
+      properties:
+        optionIds:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { type: string, format: uuid }
+    PlanDecision:
+      type: object
+      required: [id, planId, placeEntityType, placeEntityId, dateValue, timeValue, lockedByUserId, lockedAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        placeEntityType: { $ref: "#/components/schemas/EntityType", nullable: true }
+        placeEntityId: { type: string, nullable: true }
+        dateValue: { type: string, nullable: true }
+        timeValue: { type: string, nullable: true }
+        lockedByUserId: { type: string }
+        lockedAt: { type: string, format: date-time }
+    FinalizePlanRequest:
+      type: object
+      properties:
+        placeOptionId: { type: string, format: uuid }
+        dateOptionId: { type: string, format: uuid }
+        timeOptionId: { type: string, format: uuid }
+    PlanAttendance:
+      type: object
+      required: [id, planId, userId, status, ticketStatus, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        userId: { type: string }
+        status: { $ref: "#/components/schemas/AttendanceStatus" }
+        ticketStatus: { $ref: "#/components/schemas/TicketStatus" }
+        updatedAt: { type: string, format: date-time }
+    PlanMedia:
+      type: object
+      required: [id, planId, uploadedByUserId, kind, storageStatus, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        uploadedByUserId: { type: string }
+        messageId: { type: string, format: uuid, nullable: true }
+        kind: { $ref: "#/components/schemas/MediaKind" }
+        storageStatus: { $ref: "#/components/schemas/MediaStorageStatus" }
+        storageKey: { type: string, nullable: true }
+        mediaUrl: { type: string, format: uri, nullable: true }
+        mimeType: { type: string, nullable: true }
+        byteSize: { type: integer, nullable: true }
+        durationSeconds: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+    RegisterMediaRequest:
+      type: object
+      required: [kind]
+      properties:
+        kind: { $ref: "#/components/schemas/MediaKind" }
+        messageId: { type: string, format: uuid }
+        mimeType: { type: string }
+        byteSize: { type: integer, minimum: 0 }
+        durationSeconds: { type: integer, minimum: 0 }
+        metadata: { type: object, additionalProperties: true }
+    PlanMemory:
+      type: object
+      required: [id, planId, title, visibility, completedAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        title: { type: string }
+        summary: { type: string, nullable: true }
+        visibility: { $ref: "#/components/schemas/MemoryVisibility" }
+        completedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    CompletePlanRequest:
+      type: object
+      properties:
+        title: { type: string, maxLength: 160 }
+        summary: { type: string, maxLength: 2000 }
+        visibility: { $ref: "#/components/schemas/MemoryVisibility" }
+    PlanWorkspace:
+      type: object
+      required: [plan, members, messages, sharedItems, polls, decision, attendance, media, memory]
+      properties:
+        plan: { $ref: "#/components/schemas/Plan" }
+        members:
+          type: array
+          items: { $ref: "#/components/schemas/PlanMember" }
+        messages:
+          type: array
+          items: { $ref: "#/components/schemas/PlanMessage" }
+        sharedItems:
+          type: array
+          items: { $ref: "#/components/schemas/SharedItem" }
+        polls:
+          type: array
+          items: { $ref: "#/components/schemas/PlanPoll" }
+        decision: { $ref: "#/components/schemas/PlanDecision", nullable: true }
+        attendance:
+          type: array
+          items: { $ref: "#/components/schemas/PlanAttendance" }
+        media:
+          type: array
+          items: { $ref: "#/components/schemas/PlanMedia" }
+        memory: { $ref: "#/components/schemas/PlanMemory", nullable: true }
 

@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface VoteRequest {
+  /**
+     * @minItems 1
+     * @maxItems 20
+     */
+  optionIds: string[];
 }
