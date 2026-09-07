@@ -1,4 +1,5 @@
 import {
+  type ChangeEvent,
   type FormEvent,
   type ReactNode,
   useEffect,
@@ -17,6 +18,7 @@ import {
   BookOpen,
   Bookmark,
   CalendarDays,
+  Camera,
   Check,
   ChevronRight,
   CircleAlert,
@@ -27,19 +29,25 @@ import {
   Flame,
   Gift,
   Heart,
+  ImagePlus,
   LocateFixed,
   LoaderCircle,
   Mail,
   MapPin,
+  MessageCircle,
+  MoreHorizontal,
   Plus,
   Search,
+  Send,
   Share2,
   Smartphone,
   Sparkles,
   Ticket,
+  UserPlus,
   UserRound,
   UsersRound,
   Utensils,
+  Video,
   Waves,
   X,
 } from "lucide-react";
@@ -89,148 +97,33 @@ type DiscoverItem = {
 
 type AuthProvider = "Phone" | "Email" | "Google" | "Apple";
 
+type LiveVibe = "Poppin'" | "Good" | "Mid" | "Dead";
+
+type LiveStory = {
+  id: string;
+  title: string;
+  image: string;
+  count: number;
+  vibe: LiveVibe;
+};
+
+type LivePost = {
+  id: string;
+  user: string;
+  initials: string;
+  place: string;
+  city: string;
+  image: string;
+  minutesAgo: number;
+  vibe: LiveVibe;
+  caption: string;
+  likes: number;
+  comments: number;
+};
+
 const queryClient = new QueryClient();
 
 const LOCATION_STORAGE_KEY = "wein-location";
-
-function readStoredLocation(): DiscoveryLocation {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  try {
-    const stored = window.localStorage.getItem(LOCATION_STORAGE_KEY);
-
-    return stored ? (JSON.parse(stored) as DiscoveryLocation) : {};
-  } catch {
-    return {};
-  }
-}
-
-function useDiscoveryLocation() {
-  const [location, setLocation] = useState<DiscoveryLocation>(() =>
-    readStoredLocation(),
-  );
-
-  const [status, setStatus] = useState<LocationStatus>(() =>
-    Object.keys(readStoredLocation()).length ? "ready" : "idle",
-  );
-
-  useEffect(() => {
-    try {
-      if (Object.keys(location).length) {
-        window.localStorage.setItem(
-          LOCATION_STORAGE_KEY,
-          JSON.stringify(location),
-        );
-      } else {
-        window.localStorage.removeItem(LOCATION_STORAGE_KEY);
-      }
-    } catch {
-      // Location still works for the current session.
-    }
-  }, [location]);
-
-  const useCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setStatus("error");
-      return;
-    }
-
-    setStatus("locating");
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        });
-
-        setStatus("ready");
-      },
-      (error) => {
-        setStatus(error.code === error.PERMISSION_DENIED ? "denied" : "error");
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 300000,
-      },
-    );
-  };
-
-  const saveCity = (city: string) => {
-    const cleaned = city.trim();
-
-    if (!cleaned) {
-      return;
-    }
-
-    setLocation({
-      city: cleaned,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    });
-
-    setStatus("ready");
-  };
-
-  return {
-    location,
-    status,
-    useCurrentLocation,
-    saveCity,
-  };
-}
-
-function locationLabel(location: DiscoveryLocation) {
-  if (location.city) {
-    return [location.city, location.region].filter(Boolean).join(", ");
-  }
-
-  if (location.latitude !== undefined) {
-    return "Current location";
-  }
-
-  return "Choose location";
-}
-
-function eventDateLabel(event: DiscoveryEvent) {
-  if (!event.startTime) {
-    return "Date to be confirmed";
-  }
-
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: event.timezone || undefined,
-    }).format(new Date(event.startTime));
-  } catch {
-    return event.startTime;
-  }
-}
-
-function eventPriceLabel(event: DiscoveryEvent) {
-  if (event.priceMin === undefined && event.priceMax === undefined) {
-    return "Price varies";
-  }
-
-  const currency = event.currency || "USD";
-
-  if (event.priceMin === event.priceMax || event.priceMax === undefined) {
-    return `${currency} ${event.priceMin}`;
-  }
-
-  return `${currency} ${event.priceMin}–${event.priceMax}`;
-}
-
-function eventSaveId(event: DiscoveryEvent) {
-  return `event:${event.provider}:${event.providerId}`;
-}
 
 const categories: {
   name: Category;
@@ -389,6 +282,225 @@ const authOptions: {
   },
 ];
 
+const liveStories: LiveStory[] = [
+  {
+    id: "night-market",
+    title: "Night Market",
+    image: "/images/night-market.jpg",
+    count: 18,
+    vibe: "Poppin'",
+  },
+  {
+    id: "downtown",
+    title: "Downtown",
+    image: "/images/arcade.jpg",
+    count: 12,
+    vibe: "Good",
+  },
+  {
+    id: "coffee",
+    title: "Coffee",
+    image: "/images/coffee.jpg",
+    count: 7,
+    vibe: "Good",
+  },
+  {
+    id: "outdoors",
+    title: "Outside",
+    image: "/images/park.jpg",
+    count: 4,
+    vibe: "Mid",
+  },
+];
+
+const initialLivePosts: LivePost[] = [
+  {
+    id: "live-1",
+    user: "samira.k",
+    initials: "SK",
+    place: "Night Market After Dark",
+    city: "Richmond, BC",
+    image: "/images/night-market.jpg",
+    minutesAgo: 2,
+    vibe: "Poppin'",
+    caption: "So many good food spots tonight.",
+    likes: 84,
+    comments: 12,
+  },
+  {
+    id: "live-2",
+    user: "alex.r",
+    initials: "AR",
+    place: "Pixel Night at Glitch",
+    city: "Vancouver, BC",
+    image: "/images/arcade.jpg",
+    minutesAgo: 8,
+    vibe: "Good",
+    caption: "Actually way busier than I expected.",
+    likes: 39,
+    comments: 6,
+  },
+  {
+    id: "live-3",
+    user: "maya.s",
+    initials: "MS",
+    place: "Nicomekl River Sunset Walk",
+    city: "Surrey, BC",
+    image: "/images/park.jpg",
+    minutesAgo: 14,
+    vibe: "Good",
+    caption: "The sunset is crazy right now.",
+    likes: 61,
+    comments: 4,
+  },
+];
+
+function readStoredLocation(): DiscoveryLocation {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const stored = window.localStorage.getItem(LOCATION_STORAGE_KEY);
+
+    return stored ? (JSON.parse(stored) as DiscoveryLocation) : {};
+  } catch {
+    return {};
+  }
+}
+
+function useDiscoveryLocation() {
+  const [location, setLocation] = useState<DiscoveryLocation>(() =>
+    readStoredLocation(),
+  );
+
+  const [status, setStatus] = useState<LocationStatus>(() =>
+    Object.keys(readStoredLocation()).length ? "ready" : "idle",
+  );
+
+  useEffect(() => {
+    try {
+      if (Object.keys(location).length) {
+        window.localStorage.setItem(
+          LOCATION_STORAGE_KEY,
+          JSON.stringify(location),
+        );
+      } else {
+        window.localStorage.removeItem(LOCATION_STORAGE_KEY);
+      }
+    } catch {
+      // Location still works for the current session.
+    }
+  }, [location]);
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setStatus("error");
+      return;
+    }
+
+    setStatus("locating");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        });
+
+        setStatus("ready");
+      },
+      (error) => {
+        setStatus(error.code === error.PERMISSION_DENIED ? "denied" : "error");
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  };
+
+  const saveCity = (city: string) => {
+    const cleaned = city.trim();
+
+    if (!cleaned) {
+      return;
+    }
+
+    setLocation({
+      city: cleaned,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+
+    setStatus("ready");
+  };
+
+  return {
+    location,
+    status,
+    useCurrentLocation,
+    saveCity,
+  };
+}
+
+function locationLabel(location: DiscoveryLocation) {
+  if (location.city) {
+    return [location.city, location.region].filter(Boolean).join(", ");
+  }
+
+  if (location.latitude !== undefined) {
+    return "Current location";
+  }
+
+  return "Choose location";
+}
+
+function eventDateLabel(event: DiscoveryEvent) {
+  if (!event.startTime) {
+    return "Date to be confirmed";
+  }
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: event.timezone || undefined,
+    }).format(new Date(event.startTime));
+  } catch {
+    return event.startTime;
+  }
+}
+
+function eventPriceLabel(event: DiscoveryEvent) {
+  if (event.priceMin === undefined && event.priceMax === undefined) {
+    return "Price varies";
+  }
+
+  const currency = event.currency || "USD";
+
+  if (event.priceMin === event.priceMax || event.priceMax === undefined) {
+    return `${currency} ${event.priceMin}`;
+  }
+
+  return `${currency} ${event.priceMin}–${event.priceMax}`;
+}
+
+function eventSaveId(event: DiscoveryEvent) {
+  return `event:${event.provider}:${event.providerId}`;
+}
+
+function vibeEmoji(vibe: LiveVibe) {
+  if (vibe === "Poppin'") return "🔥";
+  if (vibe === "Good") return "🙂";
+  if (vibe === "Mid") return "😐";
+  return "💀";
+}
+
 function SaveButton({
   id,
   saved,
@@ -488,9 +600,6 @@ function SectionHeading({
           type="button"
           onClick={() => onAction?.()}
           className="text-action"
-          data-testid={`button-section-${title
-            .toLowerCase()
-            .replaceAll(" ", "-")}`}
         >
           {action}
           <ChevronRight size={15} />
@@ -510,7 +619,7 @@ function FeatureCard({
   const item = items[0];
 
   return (
-    <article className="feature-card" data-testid="card-feature-night-market">
+    <article className="feature-card">
       <img
         src={item.image}
         alt="Warm lights and food stalls at Night Market After Dark"
@@ -544,7 +653,6 @@ function FeatureCard({
               behavior: "smooth",
             })
           }
-          data-testid="button-see-whats-happening"
         >
           See what's happening
           <ChevronRight size={16} />
@@ -566,10 +674,7 @@ function EventCard({
   compact?: boolean;
 }) {
   return (
-    <article
-      className={`event-card ${compact ? "event-card-compact" : ""}`}
-      data-testid={`card-event-${item.id}`}
-    >
+    <article className={`event-card ${compact ? "event-card-compact" : ""}`}>
       <div className="event-image-wrap">
         <img src={item.image} alt="" className="event-image" />
 
@@ -584,7 +689,6 @@ function EventCard({
         <div className="event-title-row">
           <div>
             <p className="card-category">{item.category}</p>
-
             <h3>{item.title}</h3>
           </div>
 
@@ -630,14 +734,10 @@ function LocationPicker({
   }
 
   return (
-    <section
-      className="location-picker page-enter"
-      aria-label="Choose a search location"
-    >
+    <section className="location-picker page-enter">
       <div className="location-picker-heading">
         <div>
           <p className="section-eyebrow">SEARCH AREA</p>
-
           <h2>{locationLabel(location)}</h2>
         </div>
 
@@ -720,10 +820,7 @@ function DiscoveryEventCard({
   const eventId = encodeURIComponent(`${event.provider}:${event.providerId}`);
 
   return (
-    <article
-      className="discovery-result-card"
-      data-testid={`card-discovery-${event.providerId}`}
-    >
+    <article className="discovery-result-card">
       <div className="discovery-result-image-wrap">
         {event.imageUrl ? (
           <img src={event.imageUrl} alt="" className="discovery-result-image" />
@@ -738,7 +835,6 @@ function DiscoveryEventCard({
         <div className="discovery-result-heading">
           <div>
             <p className="card-category">{event.category}</p>
-
             <h3>{event.name}</h3>
           </div>
 
@@ -871,14 +967,10 @@ function DiscoveryAssistant({
   };
 
   return (
-    <section
-      className="discovery-assistant"
-      aria-label="WEIN discovery assistant"
-    >
+    <section className="discovery-assistant">
       <div className="assistant-heading">
         <div>
           <p className="section-eyebrow">TELL WEIN</p>
-
           <h2>What are you in the mood for?</h2>
         </div>
 
@@ -891,7 +983,6 @@ function DiscoveryAssistant({
           onChange={(event) => setPrompt(event.target.value)}
           placeholder="Something fun tonight under $25..."
           aria-label="Tell WEIN what you want to do"
-          data-testid="input-discovery-assistant"
         />
 
         <button
@@ -938,7 +1029,6 @@ function DiscoveryAssistant({
         <div className="discovery-results">
           <div className="results-heading">
             <p className="section-eyebrow">REAL EVENTS</p>
-
             <span>Source-backed results</span>
           </div>
 
@@ -956,51 +1046,127 @@ function DiscoveryAssistant({
   );
 }
 
-function BottomNav({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
-}) {
-  const navItems: {
-    name: Tab;
-    icon: typeof Compass;
-  }[] = [
-    { name: "Discover", icon: Compass },
-    { name: "Live", icon: Flame },
-    { name: "Create", icon: Plus },
-    { name: "Plans", icon: Ticket },
-    { name: "You", icon: UserRound },
-  ];
-
+function BrandLockup({ compact = false }: { compact?: boolean }) {
   return (
-    <nav className="bottom-nav" aria-label="Main navigation">
-      <div className="bottom-nav-inner">
-        {navItems.map(({ name, icon: Icon }) => (
-          <button
-            type="button"
-            key={name}
-            className={`bottom-tab ${activeTab === name ? "active" : ""} ${
-              name === "Create" ? "create-tab" : ""
-            }`}
-            onClick={() => onTabChange(name)}
-            aria-current={activeTab === name ? "page" : undefined}
-            data-testid={`button-nav-${name.toLowerCase()}`}
-          >
-            <span className="nav-icon">
-              <Icon
-                size={name === "Create" ? 20 : 18}
-                strokeWidth={name === "Create" ? 2.4 : 1.8}
-              />
-            </span>
+    <div
+      className={`brand-lockup ${compact ? "brand-lockup-compact" : ""}`}
+      aria-label="WEIN, where to next?"
+    >
+      <div className="brand-lockup-logo-wrap">
+        <img src="/wein-logo.png" alt="" className="brand-lockup-logo" />
+      </div>
 
-            <span>{name}</span>
+      <div className="brand-lockup-copy">
+        <span className="brand-lockup-word">WEIN</span>
+
+        <span className="brand-lockup-arabic" lang="ar" dir="rtl">
+          ويــــــن؟
+        </span>
+
+        <span className="brand-lockup-tagline">Where to next?</span>
+      </div>
+    </div>
+  );
+}
+
+function Welcome({
+  onContinue,
+}: {
+  onContinue: (provider: AuthProvider) => void;
+}) {
+  return (
+    <main className="welcome-screen page-enter">
+      <div className="welcome-top">
+        <button
+          type="button"
+          className="onboarding-skip"
+          onClick={() => onContinue("Phone")}
+        >
+          Skip
+        </button>
+      </div>
+
+      <div className="welcome-brand">
+        <BrandLockup compact />
+      </div>
+
+      <div className="welcome-message">
+        <p className="section-eyebrow">FIND YOUR NEXT MOVE</p>
+
+        <h1>
+          See what&apos;s happening.
+          <br />
+          Go where it&apos;s good.
+        </h1>
+
+        <p className="welcome-copy">
+          Discover real places, see what they look like right now, and make
+          plans with your people.
+        </p>
+      </div>
+
+      <div className="auth-options" aria-label="Demo sign-in options">
+        {authOptions.map(({ provider, icon: Icon }) => (
+          <button
+            key={provider}
+            type="button"
+            className={`auth-option ${
+              provider === "Phone" ? "auth-option-primary" : ""
+            }`}
+            onClick={() => onContinue(provider)}
+          >
+            <Icon size={18} />
+            <span>Continue with {provider}</span>
           </button>
         ))}
       </div>
-    </nav>
+
+      <p className="onboarding-disclaimer">
+        Demo preview · authentication will be connected later.
+      </p>
+    </main>
   );
+}
+
+function Onboarding() {
+  const [, setLocation] = useLocation();
+
+  const [stage, setStage] = useState<"splash" | "welcome">("splash");
+
+  const continueToDiscover = () => {
+    setLocation("/discover");
+  };
+
+  if (stage === "splash") {
+    return (
+      <main className="splash-screen" data-testid="screen-splash">
+        <div className="splash-brand">
+          <BrandLockup />
+        </div>
+
+        <div className="splash-bottom">
+          <p className="splash-footer">
+            Real people.
+            <br />
+            Real places.
+            <br />
+            More to do.
+          </p>
+
+          <button
+            type="button"
+            className="splash-cta"
+            onClick={() => setStage("welcome")}
+          >
+            Get Started
+            <ChevronRight size={17} />
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  return <Welcome onContinue={continueToDiscover} />;
 }
 
 function Header({
@@ -1037,10 +1203,8 @@ function Header({
           type="button"
           className="location-lockup"
           onClick={onLocationClick}
-          data-testid="button-location-picker"
         >
           <MapPin size={14} />
-
           <span>{locationLabel(location)}</span>
         </button>
 
@@ -1048,10 +1212,8 @@ function Header({
           type="button"
           className="icon-button notification-button"
           aria-label="Notifications"
-          data-testid="button-notifications"
         >
           <Bell size={19} />
-
           <span className="notification-dot" />
         </button>
       </div>
@@ -1068,7 +1230,6 @@ function Header({
           placeholder="Search events, places, people..."
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          data-testid="input-search-discover"
         />
 
         {query && (
@@ -1077,17 +1238,13 @@ function Header({
             className="clear-search"
             onClick={() => onQueryChange("")}
             aria-label="Clear search"
-            data-testid="button-clear-search"
           >
             <X size={15} />
           </button>
         )}
       </label>
 
-      <div
-        className="category-scroller hide-scrollbar"
-        aria-label="Browse categories"
-      >
+      <div className="category-scroller hide-scrollbar">
         {categories.map(({ name, icon: Icon }) => (
           <button
             type="button"
@@ -1095,9 +1252,6 @@ function Header({
             className={`category-chip ${category === name ? "selected" : ""}`}
             onClick={() => onCategoryChange(name)}
             aria-pressed={category === name}
-            data-testid={`button-category-${name
-              .toLowerCase()
-              .replaceAll(" ", "-")}`}
           >
             <Icon size={14} />
             {name}
@@ -1108,134 +1262,20 @@ function Header({
   );
 }
 
-function BrandLockup({ compact = false }: { compact?: boolean }) {
-  return (
-    <div
-      className={`brand-lockup ${compact ? "brand-lockup-compact" : ""}`}
-      aria-label="WEIN, where to next?"
-    >
-      <div className="brand-lockup-logo-wrap">
-        <img src="/wein-logo.png" alt="" className="brand-lockup-logo" />
-      </div>
-
-      <div className="brand-lockup-copy">
-        <span className="brand-lockup-word">WEIN</span>
-
-        <span className="brand-lockup-arabic" lang="ar" dir="rtl">
-          ويــــــن؟
-        </span>
-
-        <span className="brand-lockup-tagline expressive-accent">
-          Where to next?
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function Welcome({
-  onContinue,
-}: {
-  onContinue: (provider: AuthProvider) => void;
-}) {
-  return (
-    <main className="welcome-screen page-enter">
-      <button
-        type="button"
-        className="onboarding-skip"
-        onClick={() => onContinue("Phone")}
-        data-testid="button-onboarding-skip"
-      >
-        Skip
-      </button>
-
-      <BrandLockup compact />
-
-      <p className="welcome-copy">
-        Discover what's happening, make plans,
-        <br />
-        and experience more together.
-      </p>
-
-      <div className="auth-options" aria-label="Demo sign-in options">
-        {authOptions.map(({ provider, icon: Icon }) => (
-          <button
-            key={provider}
-            type="button"
-            className={`auth-option ${
-              provider === "Phone" ? "auth-option-primary" : ""
-            }`}
-            onClick={() => onContinue(provider)}
-            data-testid={`button-continue-${provider.toLowerCase()}`}
-          >
-            <Icon size={17} />
-
-            <span>Continue with {provider}</span>
-          </button>
-        ))}
-      </div>
-
-      <p className="onboarding-disclaimer">
-        Demo preview — authentication will be connected later.
-      </p>
-    </main>
-  );
-}
-
-function Onboarding() {
-  const [, setLocation] = useLocation();
-
-  const [stage, setStage] = useState<"splash" | "welcome">("splash");
-
-  const continueToDiscover = () => {
-    setLocation("/discover");
-  };
-
-  if (stage === "splash") {
-    return (
-      <main className="splash-screen" data-testid="screen-splash">
-        <div className="splash-brand">
-          <BrandLockup />
-        </div>
-
-        <p className="splash-footer expressive-accent">
-          Real people.
-          <br />
-          Real places.
-          <br />
-          More to do.
-        </p>
-
-        <button
-          type="button"
-          className="splash-cta"
-          onClick={() => setStage("welcome")}
-          data-testid="button-get-started"
-        >
-          Get Started
-          <ChevronRight size={17} />
-        </button>
-      </main>
-    );
-  }
-
-  return <Welcome onContinue={continueToDiscover} />;
-}
-
 function BoredModule() {
   const [, setLocation] = useLocation();
 
   return (
-    <section className="bored-module" data-testid="module-im-bored">
+    <section className="bored-module">
       <div className="bored-stamp">
         <Sparkles size={18} />
         <span>NO PLANS?</span>
       </div>
 
       <div className="bored-copy">
-        <h2 className="expressive-accent">Don't know where?</h2>
+        <h2>Don&apos;t know where?</h2>
 
-        <p className="bored-pick expressive-accent">Let WEIN pick.</p>
+        <p className="bored-pick">Let WEIN pick.</p>
 
         <p className="bored-supporting-copy">
           Tell us your mood. WEIN will pick the move.
@@ -1246,80 +1286,575 @@ function BoredModule() {
         type="button"
         className="bored-button"
         onClick={() => setLocation("/bored")}
-        data-testid="button-im-bored"
       >
-        I'M BORED
+        I&apos;M BORED
         <ChevronRight size={18} />
       </button>
     </section>
   );
 }
 
-function TabPlaceholder({
-  tab,
-  onBack,
-}: {
-  tab: Exclude<Tab, "Discover">;
-  onBack: () => void;
-}) {
-  const copy: Record<
-    Exclude<Tab, "Discover">,
-    {
-      title: string;
-      body: string;
-    }
-  > = {
-    Live: {
-      title: "Live is warming up",
-      body: "A quick view of what is moving nearby is next.",
-    },
-    Create: {
-      title: "Make the plan",
-      body: "Soon you can drop an idea and invite your people.",
-    },
-    Plans: {
-      title: "Your plans, in one place",
-      body: "Saved nights and shared plans are coming next.",
-    },
-    You: {
-      title: "Your WEIN, your way",
-      body: "Your profile and saved places are on the way.",
-    },
-  };
-
-  const selected = copy[tab];
+function LivePostCard({ post }: { post: LivePost }) {
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likes);
 
   return (
-    <main
-      className="tab-placeholder page-enter"
-      data-testid={`placeholder-${tab.toLowerCase()}`}
-    >
-      <div className="placeholder-mark">
-        <Compass size={25} />
+    <article className="live-post-card">
+      <div className="live-post-user-row">
+        <div className="live-user-avatar">{post.initials}</div>
+
+        <div className="live-user-copy">
+          <strong>{post.user}</strong>
+
+          <span>
+            {post.minutesAgo} min ago · {post.city}
+          </span>
+        </div>
+
+        <button type="button" className="live-more-button" aria-label="More">
+          <MoreHorizontal size={20} />
+        </button>
       </div>
 
-      <p className="section-eyebrow">{tab} / COMING NEXT</p>
+      <div className="live-post-media">
+        <img src={post.image} alt={`Live at ${post.place}`} />
 
-      <h1>{selected.title}</h1>
+        <div className="live-badge">
+          <span className="live-dot" />
+          LIVE NOW
+        </div>
 
-      <p>{selected.body}</p>
+        <div className="live-vibe-badge">
+          {vibeEmoji(post.vibe)} {post.vibe}
+        </div>
+      </div>
 
-      <button
-        type="button"
-        className="outline-button"
-        onClick={onBack}
-        data-testid="button-back-to-discover"
-      >
-        <ArrowLeft size={16} />
-        Back to Discover
-      </button>
+      <div className="live-post-body">
+        <button type="button" className="live-place-button">
+          <MapPin size={14} />
+
+          <span>
+            <strong>{post.place}</strong>
+            <small>{post.city}</small>
+          </span>
+
+          <ChevronRight size={16} />
+        </button>
+
+        <p className="live-caption">{post.caption}</p>
+
+        <div className="live-actions">
+          <button
+            type="button"
+            className={liked ? "is-liked" : ""}
+            onClick={() => {
+              setLiked((value) => !value);
+
+              setLikeCount((value) => (liked ? value - 1 : value + 1));
+            }}
+          >
+            <Heart size={20} fill={liked ? "currentColor" : "none"} />
+            <span>{likeCount}</span>
+          </button>
+
+          <button type="button">
+            <MessageCircle size={20} />
+            <span>{post.comments}</span>
+          </button>
+
+          <button type="button">
+            <Send size={20} />
+          </button>
+
+          <button type="button" className="live-save-action">
+            <Bookmark size={20} />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
+  const [feedFilter, setFeedFilter] = useState<
+    "For You" | "Nearby" | "Following"
+  >("Nearby");
+
+  return (
+    <main className="live-page page-enter">
+      <div className="live-page-header">
+        <div>
+          <p className="section-eyebrow">HAPPENING NOW</p>
+
+          <h1>Live</h1>
+        </div>
+
+        <button
+          type="button"
+          className="live-camera-button"
+          onClick={onCreateInstant}
+        >
+          <Camera size={20} />
+        </button>
+      </div>
+
+      <div className="live-filter-tabs">
+        {["For You", "Nearby", "Following"].map((filter) => (
+          <button
+            type="button"
+            key={filter}
+            className={feedFilter === filter ? "selected" : ""}
+            onClick={() =>
+              setFeedFilter(filter as "For You" | "Nearby" | "Following")
+            }
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
+      <section className="live-stories-section">
+        <div className="live-stories hide-scrollbar">
+          <button
+            type="button"
+            className="live-story live-story-add"
+            onClick={onCreateInstant}
+          >
+            <span className="live-story-circle live-story-add-circle">
+              <Plus size={22} />
+            </span>
+
+            <span>Add</span>
+          </button>
+
+          {liveStories.map((story) => (
+            <button type="button" className="live-story" key={story.id}>
+              <span className="live-story-ring">
+                <img src={story.image} alt="" />
+              </span>
+
+              <span>{story.title}</span>
+
+              <small>{story.count}</small>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="live-intro-card">
+        <div className="live-intro-icon">
+          <Flame size={20} />
+        </div>
+
+        <div>
+          <strong>See what it&apos;s actually like.</strong>
+
+          <p>
+            Instants show photos and short videos from people who are there
+            right now.
+          </p>
+        </div>
+      </div>
+
+      <section className="live-feed-list">
+        {initialLivePosts.map((post) => (
+          <LivePostCard key={post.id} post={post} />
+        ))}
+      </section>
     </main>
+  );
+}
+
+function CreateInstant({
+  onClose,
+  onPosted,
+}: {
+  onClose: () => void;
+  onPosted: () => void;
+}) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  const [vibe, setVibe] = useState<LiveVibe>("Poppin'");
+
+  const [place, setPlace] = useState("Night Market After Dark");
+
+  const [caption, setCaption] = useState("");
+
+  const handleMedia = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setImageUrl(URL.createObjectURL(file));
+  };
+
+  return (
+    <main className="instant-page page-enter">
+      <div className="instant-topbar">
+        <button type="button" onClick={onClose} className="instant-close">
+          <X size={22} />
+        </button>
+
+        <strong>Create an Instant</strong>
+
+        <span />
+      </div>
+
+      <section className="instant-media">
+        {imageUrl ? (
+          <img src={imageUrl} alt="Instant preview" />
+        ) : (
+          <label className="instant-upload">
+            <div className="instant-camera-icon">
+              <Camera size={30} />
+            </div>
+
+            <strong>Share what it looks like right now</strong>
+
+            <span>Take a photo or choose one from your phone.</span>
+
+            <div className="instant-upload-actions">
+              <span>
+                <ImagePlus size={17} />
+                Photo
+              </span>
+
+              <span>
+                <Video size={17} />
+                Video
+              </span>
+            </div>
+
+            <input
+              type="file"
+              accept="image/*,video/*"
+              capture="environment"
+              onChange={handleMedia}
+            />
+          </label>
+        )}
+
+        {imageUrl && (
+          <label className="instant-change-media">
+            <Camera size={16} />
+            Change
+            <input
+              type="file"
+              accept="image/*,video/*"
+              capture="environment"
+              onChange={handleMedia}
+            />
+          </label>
+        )}
+      </section>
+
+      <section className="instant-form">
+        <div className="instant-section">
+          <label className="instant-field-label">Where are you?</label>
+
+          <div className="instant-place-field">
+            <MapPin size={17} />
+
+            <input
+              value={place}
+              onChange={(event) => setPlace(event.target.value)}
+              placeholder="Search place or event"
+            />
+          </div>
+        </div>
+
+        <div className="instant-section">
+          <label className="instant-field-label">How&apos;s the vibe?</label>
+
+          <div className="instant-vibes">
+            {(["Poppin'", "Good", "Mid", "Dead"] as LiveVibe[]).map(
+              (option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={vibe === option ? "selected" : ""}
+                  onClick={() => setVibe(option)}
+                >
+                  <span>{vibeEmoji(option)}</span>
+
+                  <small>{option}</small>
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="instant-section">
+          <label className="instant-field-label">Say something</label>
+
+          <textarea
+            value={caption}
+            onChange={(event) => setCaption(event.target.value)}
+            placeholder="What should people know?"
+            maxLength={180}
+          />
+
+          <span className="instant-character-count">{caption.length}/180</span>
+        </div>
+
+        <div className="instant-privacy-note">
+          <Clock3 size={15} />
+
+          <span>
+            Instants disappear after 24 hours so people see what&apos;s current.
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="instant-post-button"
+          disabled={!imageUrl || !place.trim()}
+          onClick={onPosted}
+        >
+          <Camera size={18} />
+          Post Instant
+        </button>
+      </section>
+    </main>
+  );
+}
+
+function CreateMenu({ onInstant }: { onInstant: () => void }) {
+  const createOptions = [
+    {
+      title: "Instant",
+      description: "Share what a place looks like right now.",
+      icon: Camera,
+      action: onInstant,
+    },
+    {
+      title: "Activity",
+      description: "Create something people nearby can join.",
+      icon: Flame,
+    },
+    {
+      title: "Event",
+      description: "Post an organized event.",
+      icon: Ticket,
+    },
+    {
+      title: "Plan",
+      description: "Make a plan and invite your friends.",
+      icon: UsersRound,
+    },
+  ];
+
+  return (
+    <main className="create-page page-enter">
+      <div className="create-page-heading">
+        <p className="section-eyebrow">CREATE</p>
+
+        <h1>What&apos;s the move?</h1>
+
+        <p>Post what&apos;s happening now or make something happen.</p>
+      </div>
+
+      <div className="create-options-grid">
+        {createOptions.map(({ title, description, icon: Icon, action }) => (
+          <button
+            type="button"
+            className={`create-option-card ${
+              title === "Instant" ? "create-option-primary" : ""
+            }`}
+            key={title}
+            onClick={action}
+          >
+            <span className="create-option-icon">
+              <Icon size={22} />
+            </span>
+
+            <span className="create-option-copy">
+              <strong>{title}</strong>
+              <small>{description}</small>
+            </span>
+
+            <ChevronRight size={18} />
+          </button>
+        ))}
+      </div>
+
+      <div className="create-tip">
+        <Sparkles size={18} />
+
+        <p>
+          <strong>WEIN Instant</strong> is for the moment. Show people what a
+          place actually looks like before they decide to go.
+        </p>
+      </div>
+    </main>
+  );
+}
+
+function PlansPage() {
+  return (
+    <main className="tab-placeholder page-enter">
+      <div className="placeholder-mark">
+        <UsersRound size={25} />
+      </div>
+
+      <p className="section-eyebrow">PLANS / COMING NEXT</p>
+
+      <h1>Your plans, in one place</h1>
+
+      <p>
+        Group chats, shared places, polls and voting are the next social layer
+        we&apos;ll build.
+      </p>
+
+      <div className="plans-preview-card">
+        <div className="plans-preview-users">
+          <span>MK</span>
+          <span>AR</span>
+          <span>JM</span>
+        </div>
+
+        <strong>Friday night?</strong>
+
+        <div className="plans-preview-option">
+          <span>Night Market</span>
+          <strong>5 votes</strong>
+        </div>
+
+        <div className="plans-preview-option">
+          <span>Bowling</span>
+          <strong>2 votes</strong>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function YouPage() {
+  const profileImages = [
+    "/images/night-market.jpg",
+    "/images/coffee.jpg",
+    "/images/park.jpg",
+    "/images/arcade.jpg",
+    "/images/night-market.jpg",
+    "/images/park.jpg",
+  ];
+
+  return (
+    <main className="you-page page-enter">
+      <div className="profile-header">
+        <div className="profile-avatar">MK</div>
+
+        <div>
+          <h1>muna.k</h1>
+          <p>Good places. Better people.</p>
+        </div>
+
+        <button type="button">
+          <UserPlus size={18} />
+        </button>
+      </div>
+
+      <div className="profile-stats">
+        <span>
+          <strong>48</strong>
+          Instants
+        </span>
+
+        <span>
+          <strong>1.2K</strong>
+          Followers
+        </span>
+
+        <span>
+          <strong>326</strong>
+          Following
+        </span>
+      </div>
+
+      <div className="profile-tabs">
+        <button type="button" className="selected">
+          Instants
+        </button>
+
+        <button type="button">Saved</button>
+
+        <button type="button">Collections</button>
+      </div>
+
+      <div className="profile-grid">
+        {profileImages.map((image, index) => (
+          <img key={`${image}-${index}`} src={image} alt="" />
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function BottomNav({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: Tab;
+  onTabChange: (tab: Tab) => void;
+}) {
+  const navItems: {
+    name: Tab;
+    icon: typeof Compass;
+  }[] = [
+    {
+      name: "Discover",
+      icon: Compass,
+    },
+    {
+      name: "Live",
+      icon: Flame,
+    },
+    {
+      name: "Create",
+      icon: Plus,
+    },
+    {
+      name: "Plans",
+      icon: Ticket,
+    },
+    {
+      name: "You",
+      icon: UserRound,
+    },
+  ];
+
+  return (
+    <nav className="bottom-nav">
+      <div className="bottom-nav-inner">
+        {navItems.map(({ name, icon: Icon }) => (
+          <button
+            type="button"
+            key={name}
+            className={`bottom-tab ${activeTab === name ? "active" : ""} ${
+              name === "Create" ? "create-tab" : ""
+            }`}
+            onClick={() => onTabChange(name)}
+          >
+            <span className="nav-icon">
+              <Icon
+                size={name === "Create" ? 20 : 18}
+                strokeWidth={name === "Create" ? 2.4 : 1.8}
+              />
+            </span>
+
+            <span>{name}</span>
+          </button>
+        ))}
+      </div>
+    </nav>
   );
 }
 
 function EmptyResults({ query }: { query: string }) {
   return (
-    <div className="empty-results" data-testid="empty-search-results">
+    <div className="empty-results">
       <Search size={22} />
 
       <p>
@@ -1345,6 +1880,10 @@ function Discover() {
   const [saveMessage, setSaveMessage] = useState("");
 
   const [locationOpen, setLocationOpen] = useState(false);
+
+  const [instantOpen, setInstantOpen] = useState(false);
+
+  const [instantMessage, setInstantMessage] = useState("");
 
   const {
     location,
@@ -1425,28 +1964,57 @@ function Discover() {
 
   const freeThisWeek = filteredItems.filter((item) => item.price === "Free");
 
+  if (instantOpen) {
+    return (
+      <div className="wein-shell grain">
+        <CreateInstant
+          onClose={() => setInstantOpen(false)}
+          onPosted={() => {
+            setInstantOpen(false);
+            setActiveTab("Live");
+
+            setInstantMessage("Instant posted");
+
+            window.setTimeout(() => setInstantMessage(""), 1800);
+          }}
+        />
+
+        {instantMessage && (
+          <div className="save-toast">
+            <Check size={15} />
+            {instantMessage}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="wein-shell grain">
       <div className="app-content">
-        <Header
-          query={query}
-          onQueryChange={setQuery}
-          category={category}
-          onCategoryChange={setCategory}
-          location={location}
-          onLocationClick={() => setLocationOpen((open) => !open)}
-        />
+        {activeTab === "Discover" && (
+          <>
+            <Header
+              query={query}
+              onQueryChange={setQuery}
+              category={category}
+              onCategoryChange={setCategory}
+              location={location}
+              onLocationClick={() => setLocationOpen((open) => !open)}
+            />
 
-        <LocationPicker
-          open={locationOpen}
-          location={location}
-          status={locationStatus}
-          onUseCurrent={useCurrentLocation}
-          onSaveCity={saveCity}
-          onClose={() => setLocationOpen(false)}
-        />
+            <LocationPicker
+              open={locationOpen}
+              location={location}
+              status={locationStatus}
+              onUseCurrent={useCurrentLocation}
+              onSaveCity={saveCity}
+              onClose={() => setLocationOpen(false)}
+            />
+          </>
+        )}
 
-        {activeTab === "Discover" ? (
+        {activeTab === "Discover" && (
           <main className="discover-main page-enter">
             <DiscoveryAssistant
               location={location}
@@ -1491,21 +2059,11 @@ function Discover() {
                 eyebrow="YOUR PEOPLE"
                 title="Friends are going"
                 action="See all"
-                onAction={() =>
-                  document.querySelector(".friends-scroller")?.scrollTo({
-                    left: 0,
-                    behavior: "smooth",
-                  })
-                }
               />
 
               <div className="friends-scroller hide-scrollbar">
                 {friends.map((friend) => (
-                  <article
-                    className="friend-card"
-                    key={friend.initials}
-                    data-testid={`card-friend-${friend.initials.toLowerCase()}`}
-                  >
+                  <article className="friend-card" key={friend.initials}>
                     <div className="friend-image-wrap">
                       <img src={friend.image} alt="" />
 
@@ -1596,23 +2154,33 @@ function Discover() {
               Demo places · details are for exploring WEIN
             </p>
           </main>
-        ) : (
-          <TabPlaceholder
-            tab={activeTab}
-            onBack={() => setActiveTab("Discover")}
-          />
         )}
+
+        {activeTab === "Live" && (
+          <LiveFeed onCreateInstant={() => setInstantOpen(true)} />
+        )}
+
+        {activeTab === "Create" && (
+          <CreateMenu onInstant={() => setInstantOpen(true)} />
+        )}
+
+        {activeTab === "Plans" && <PlansPage />}
+
+        {activeTab === "You" && <YouPage />}
 
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
         {saveMessage && (
-          <div
-            className="save-toast"
-            role="status"
-            data-testid="status-save-feedback"
-          >
+          <div className="save-toast" role="status">
             <Check size={15} />
             {saveMessage}
+          </div>
+        )}
+
+        {instantMessage && (
+          <div className="save-toast" role="status">
+            <Check size={15} />
+            {instantMessage}
           </div>
         )}
       </div>
@@ -1718,9 +2286,7 @@ function Bored() {
           startDate,
           endDate,
           maxPrice,
-
           freeOnly: budget === "Free",
-
           radiusKm,
           limit: 5,
           ...location,
@@ -1755,12 +2321,11 @@ function Bored() {
 
   return (
     <div className="wein-shell grain">
-      <main className="bored-page page-enter" data-testid="page-bored">
+      <main className="bored-page page-enter">
         <button
           type="button"
           className="back-link"
           onClick={() => setLocation("/discover")}
-          data-testid="button-bored-back"
         >
           <ArrowLeft size={17} />
           Back
@@ -1787,45 +2352,38 @@ function Bored() {
         <div className="bored-hero">
           <p className="section-eyebrow">WEIN / DECIDE FOR YOU</p>
 
-          <h1 className="bored-page-title expressive-accent">
-            Don't know
+          <h1 className="bored-page-title">
+            Don&apos;t know
             <br />
             where?
           </h1>
 
-          <span className="bored-scribble" aria-hidden="true">
-            〰
-          </span>
-
-          <p className="bored-page-pick expressive-accent">Let WEIN pick.</p>
+          <p className="bored-page-pick">Let WEIN pick.</p>
 
           <p className="bored-page-copy">
-            Tell us what you're in the mood for and we'll find something for
-            you.
+            Tell us what you&apos;re in the mood for and we&apos;ll find
+            something for you.
           </p>
         </div>
 
-        <div className="activity-stack" aria-label="Possible activities">
+        <div className="activity-stack">
           <figure className="activity-card activity-card-back">
             <img src="/images/park.jpg" alt="A peaceful outdoor walk" />
-
             <figcaption>OUTSIDE</figcaption>
           </figure>
 
           <figure className="activity-card activity-card-middle">
             <img src="/images/coffee.jpg" alt="A warm coffee shop table" />
-
             <figcaption>COFFEE</figcaption>
           </figure>
 
           <figure className="activity-card activity-card-front">
             <img src="/images/arcade.jpg" alt="A lively arcade at night" />
-
             <figcaption>PLAY</figcaption>
           </figure>
         </div>
 
-        <div className="bored-filters" aria-label="Choose your mood">
+        <div className="bored-filters">
           <div className="bored-filter-group">
             <span>Mood</span>
 
@@ -1908,7 +2466,6 @@ function Bored() {
           className="bored-main-cta"
           onClick={choose}
           disabled={loading}
-          data-testid="button-bored-pick"
         >
           {loading ? (
             <LoaderCircle size={17} className="spin" />
@@ -1918,12 +2475,6 @@ function Bored() {
 
           {loading ? "FINDING YOUR MOVE" : "I’M BORED"}
         </button>
-
-        <p className="bored-cta-copy">
-          Tell us what you're in the mood for
-          <br />
-          and we'll find something for you.
-        </p>
 
         {error && (
           <p className="assistant-error bored-error">
@@ -1983,7 +2534,9 @@ function EventDetail() {
       .then(async (response) => {
         const payload = (await response.json()) as
           | DiscoveryEvent
-          | { message?: string };
+          | {
+              message?: string;
+            };
 
         if (!response.ok) {
           throw new Error(
@@ -2041,7 +2594,6 @@ function EventDetail() {
     return (
       <main className="event-detail-state">
         <LoaderCircle size={25} className="spin" />
-
         <p>Loading the details...</p>
       </main>
     );
@@ -2095,7 +2647,6 @@ function EventDetail() {
             type="button"
             className={`detail-save-button ${saved ? "is-saved" : ""}`}
             onClick={() => setSaved((value) => !value)}
-            aria-label={saved ? "Remove from plans" : "Save event"}
           >
             <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
           </button>
@@ -2171,11 +2722,7 @@ function EventDetail() {
         </div>
       </div>
 
-      {notice && (
-        <div className="save-toast" role="status">
-          {notice}
-        </div>
-      )}
+      {notice && <div className="save-toast">{notice}</div>}
     </main>
   );
 }
