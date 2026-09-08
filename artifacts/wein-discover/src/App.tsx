@@ -121,6 +121,17 @@ type LivePost = {
   comments: number;
 };
 
+type PlanConversation = {
+  id: string;
+  name: string;
+  preview: string;
+  time: string;
+  unread?: number;
+  favorite?: boolean;
+  group?: boolean;
+  initials: string[];
+};
+
 const queryClient = new QueryClient();
 
 const LOCATION_STORAGE_KEY = "wein-location";
@@ -264,22 +275,10 @@ const authOptions: {
   provider: AuthProvider;
   icon: typeof Smartphone;
 }[] = [
-  {
-    provider: "Phone",
-    icon: Smartphone,
-  },
-  {
-    provider: "Email",
-    icon: Mail,
-  },
-  {
-    provider: "Google",
-    icon: Compass,
-  },
-  {
-    provider: "Apple",
-    icon: Apple,
-  },
+  { provider: "Phone", icon: Smartphone },
+  { provider: "Email", icon: Mail },
+  { provider: "Google", icon: Compass },
+  { provider: "Apple", icon: Apple },
 ];
 
 const liveStories: LiveStory[] = [
@@ -362,7 +361,6 @@ function readStoredLocation(): DiscoveryLocation {
 
   try {
     const stored = window.localStorage.getItem(LOCATION_STORAGE_KEY);
-
     return stored ? (JSON.parse(stored) as DiscoveryLocation) : {};
   } catch {
     return {};
@@ -519,9 +517,9 @@ function SaveButton({
       aria-pressed={saved}
       data-testid={`button-save-${id}`}
       onClick={() => onToggle(id)}
-      className={`save-button ${
-        compact ? "save-button-compact" : ""
-      } ${saved ? "is-saved" : ""}`}
+      className={`save-button ${compact ? "save-button-compact" : ""} ${
+        saved ? "is-saved" : ""
+      }`}
     >
       {saved ? (
         <Bookmark size={compact ? 16 : 18} fill="currentColor" />
@@ -567,10 +565,11 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`status-badge ${status === "TRENDING" ? "trending" : "open"}`}
+      className={`status-badge ${
+        status === "TRENDING" ? "trending" : "open"
+      }`}
     >
       {status === "TRENDING" ? <Flame size={12} /> : <Check size={12} />}
-
       {status}
     </span>
   );
@@ -591,7 +590,6 @@ function SectionHeading({
     <div className="section-heading">
       <div>
         {eyebrow && <p className="section-eyebrow">{eyebrow}</p>}
-
         <h2>{title}</h2>
       </div>
 
@@ -629,15 +627,12 @@ function FeatureCard({
 
       <div className="feature-top">
         <StatusBadge status="TRENDING" />
-
         <SaveButton id={item.id} saved={saved} onToggle={onToggle} />
       </div>
 
       <div className="feature-copy">
         <p className="feature-kicker">Tonight nearby</p>
-
         <h1>{item.title}</h1>
-
         <MetaRow item={item} light />
 
         <p className="feature-social">
@@ -817,13 +812,19 @@ function DiscoveryEventCard({
 }) {
   const [, setLocation] = useLocation();
 
-  const eventId = encodeURIComponent(`${event.provider}:${event.providerId}`);
+  const eventId = encodeURIComponent(
+    `${event.provider}:${event.providerId}`,
+  );
 
   return (
     <article className="discovery-result-card">
       <div className="discovery-result-image-wrap">
         {event.imageUrl ? (
-          <img src={event.imageUrl} alt="" className="discovery-result-image" />
+          <img
+            src={event.imageUrl}
+            alt=""
+            className="discovery-result-image"
+          />
         ) : (
           <div className="discovery-result-image-fallback">
             <Compass size={22} />
@@ -1020,8 +1021,8 @@ function DiscoveryAssistant({
 
       {!loading && hasSearched && !error && results.length === 0 && (
         <p className="assistant-empty">
-          Nothing good matched that yet. Try widening your distance or changing
-          the time.
+          Nothing good matched that yet. Try widening your distance or
+          changing the time.
         </p>
       )}
 
@@ -1130,7 +1131,6 @@ function Welcome({
 
 function Onboarding() {
   const [, setLocation] = useLocation();
-
   const [stage, setStage] = useState<"splash" | "welcome">("splash");
 
   const continueToDiscover = () => {
@@ -1274,7 +1274,6 @@ function BoredModule() {
 
       <div className="bored-copy">
         <h2>Don&apos;t know where?</h2>
-
         <p className="bored-pick">Let WEIN pick.</p>
 
         <p className="bored-supporting-copy">
@@ -1305,7 +1304,6 @@ function LivePostCard({ post }: { post: LivePost }) {
 
         <div className="live-user-copy">
           <strong>{post.user}</strong>
-
           <span>
             {post.minutesAgo} min ago · {post.city}
           </span>
@@ -1349,7 +1347,6 @@ function LivePostCard({ post }: { post: LivePost }) {
             className={liked ? "is-liked" : ""}
             onClick={() => {
               setLiked((value) => !value);
-
               setLikeCount((value) => (liked ? value - 1 : value + 1));
             }}
           >
@@ -1385,8 +1382,7 @@ function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
       <div className="live-page-header">
         <div>
           <p className="section-eyebrow">HAPPENING NOW</p>
-
-          <h1>Live</h1>
+          <h1>LIVE</h1>
         </div>
 
         <button
@@ -1423,7 +1419,6 @@ function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
             <span className="live-story-circle live-story-add-circle">
               <Plus size={22} />
             </span>
-
             <span>Add</span>
           </button>
 
@@ -1434,7 +1429,6 @@ function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
               </span>
 
               <span>{story.title}</span>
-
               <small>{story.count}</small>
             </button>
           ))}
@@ -1450,7 +1444,7 @@ function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
           <strong>See what it&apos;s actually like.</strong>
 
           <p>
-            Instants show photos and short videos from people who are there
+            WEIN Now shows photos and short videos from people who are there
             right now.
           </p>
         </div>
@@ -1473,11 +1467,8 @@ function CreateInstant({
   onPosted: () => void;
 }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-
   const [vibe, setVibe] = useState<LiveVibe>("Poppin'");
-
   const [place, setPlace] = useState("Night Market After Dark");
-
   const [caption, setCaption] = useState("");
 
   const handleMedia = (event: ChangeEvent<HTMLInputElement>) => {
@@ -1497,14 +1488,13 @@ function CreateInstant({
           <X size={22} />
         </button>
 
-        <strong>Create an Instant</strong>
-
+        <strong>Create WEIN Now</strong>
         <span />
       </div>
 
       <section className="instant-media">
         {imageUrl ? (
-          <img src={imageUrl} alt="Instant preview" />
+          <img src={imageUrl} alt="WEIN Now preview" />
         ) : (
           <label className="instant-upload">
             <div className="instant-camera-icon">
@@ -1512,7 +1502,6 @@ function CreateInstant({
             </div>
 
             <strong>Share what it looks like right now</strong>
-
             <span>Take a photo or choose one from your phone.</span>
 
             <div className="instant-upload-actions">
@@ -1540,6 +1529,7 @@ function CreateInstant({
           <label className="instant-change-media">
             <Camera size={16} />
             Change
+
             <input
               type="file"
               accept="image/*,video/*"
@@ -1578,7 +1568,6 @@ function CreateInstant({
                   onClick={() => setVibe(option)}
                 >
                   <span>{vibeEmoji(option)}</span>
-
                   <small>{option}</small>
                 </button>
               ),
@@ -1596,14 +1585,17 @@ function CreateInstant({
             maxLength={180}
           />
 
-          <span className="instant-character-count">{caption.length}/180</span>
+          <span className="instant-character-count">
+            {caption.length}/180
+          </span>
         </div>
 
         <div className="instant-privacy-note">
           <Clock3 size={15} />
 
           <span>
-            Instants disappear after 24 hours so people see what&apos;s current.
+            WEIN Now posts disappear after 24 hours so people see what&apos;s
+            current.
           </span>
         </div>
 
@@ -1614,7 +1606,7 @@ function CreateInstant({
           onClick={onPosted}
         >
           <Camera size={18} />
-          Post Instant
+          Post to WEIN Now
         </button>
       </section>
     </main>
@@ -1624,7 +1616,7 @@ function CreateInstant({
 function CreateMenu({ onInstant }: { onInstant: () => void }) {
   const createOptions = [
     {
-      title: "Instant",
+      title: "WEIN Now",
       description: "Share what a place looks like right now.",
       icon: Camera,
       action: onInstant,
@@ -1650,9 +1642,7 @@ function CreateMenu({ onInstant }: { onInstant: () => void }) {
     <main className="create-page page-enter">
       <div className="create-page-heading">
         <p className="section-eyebrow">CREATE</p>
-
         <h1>What&apos;s the move?</h1>
-
         <p>Post what&apos;s happening now or make something happen.</p>
       </div>
 
@@ -1661,7 +1651,7 @@ function CreateMenu({ onInstant }: { onInstant: () => void }) {
           <button
             type="button"
             className={`create-option-card ${
-              title === "Instant" ? "create-option-primary" : ""
+              title === "WEIN Now" ? "create-option-primary" : ""
             }`}
             key={title}
             onClick={action}
@@ -1684,8 +1674,9 @@ function CreateMenu({ onInstant }: { onInstant: () => void }) {
         <Sparkles size={18} />
 
         <p>
-          <strong>WEIN Instant</strong> is for the moment. Show people what a
-          place actually looks like before they decide to go.
+          <strong>WEIN Now</strong> is for what&apos;s happening in the
+          moment. Show people what a place actually looks like before they
+          decide to go.
         </p>
       </div>
     </main>
@@ -1693,40 +1684,431 @@ function CreateMenu({ onInstant }: { onInstant: () => void }) {
 }
 
 function PlansPage() {
+  const [selectedChat, setSelectedChat] =
+    useState<PlanConversation | null>(null);
+
+  const [filter, setFilter] = useState<"All" | "Unread" | "Favorites">("All");
+
+  const [selectedVote, setSelectedVote] = useState<string | null>(null);
+
+  const [message, setMessage] = useState("");
+
+  const conversations: PlanConversation[] = [
+    {
+      id: "friday-night",
+      name: "Friday night",
+      preview: "Jordan: Also down for bowling.",
+      time: "4:20 PM",
+      unread: 3,
+      favorite: true,
+      group: true,
+      initials: ["MK", "AR", "JM"],
+    },
+    {
+      id: "girls-night",
+      name: "Girls night",
+      preview: "Amara: What about downtown?",
+      time: "3:42 PM",
+      unread: 2,
+      group: true,
+      initials: ["AR", "SK", "MS"],
+    },
+    {
+      id: "alex",
+      name: "Alex",
+      preview: "That coffee place looks good.",
+      time: "2:18 PM",
+      favorite: true,
+      initials: ["AR"],
+    },
+    {
+      id: "weekend",
+      name: "Weekend plans",
+      preview: "Maya shared Sunset Volleyball",
+      time: "Yesterday",
+      group: true,
+      initials: ["MS", "JM", "SK"],
+    },
+    {
+      id: "jae",
+      name: "Jae",
+      preview: "You: I’m down, send me the place",
+      time: "Yesterday",
+      initials: ["JM"],
+    },
+    {
+      id: "study-break",
+      name: "Study break",
+      preview: "Samira: We need to get out of the house 😭",
+      time: "Mon",
+      group: true,
+      initials: ["SK", "MK", "AR"],
+    },
+  ];
+
+  const filteredConversations = conversations.filter((conversation) => {
+    if (filter === "Unread") {
+      return Boolean(conversation.unread);
+    }
+
+    if (filter === "Favorites") {
+      return Boolean(conversation.favorite);
+    }
+
+    return true;
+  });
+
+  if (!selectedChat) {
+    return (
+      <main className="plans-inbox-page page-enter">
+        <header className="plans-inbox-header">
+          <div>
+            <p className="section-eyebrow">PLANS</p>
+            <h1>Chats</h1>
+          </div>
+
+          <button type="button" className="plans-new-chat">
+            <Plus size={19} />
+          </button>
+        </header>
+
+        <label className="plans-search">
+          <Search size={16} />
+          <input placeholder="Search chats" />
+        </label>
+
+        <div className="plans-inbox-filters">
+          {(["All", "Unread", "Favorites"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={filter === option ? "selected" : ""}
+              onClick={() => setFilter(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+
+        <section className="plans-conversation-list">
+          {filteredConversations.map((conversation) => (
+            <button
+              type="button"
+              className="plans-conversation-row"
+              key={conversation.id}
+              onClick={() => setSelectedChat(conversation)}
+            >
+              <div
+                className={`plans-conversation-avatar ${
+                  conversation.group ? "is-group" : ""
+                }`}
+              >
+                {conversation.initials.slice(0, 3).map((initials) => (
+                  <span key={initials}>{initials}</span>
+                ))}
+              </div>
+
+              <div className="plans-conversation-copy">
+                <div className="plans-conversation-name-row">
+                  <strong>{conversation.name}</strong>
+
+                  <span
+                    className={
+                      conversation.unread ? "has-unread" : ""
+                    }
+                  >
+                    {conversation.time}
+                  </span>
+                </div>
+
+                <div className="plans-conversation-preview-row">
+                  <p>{conversation.preview}</p>
+
+                  {conversation.unread ? (
+                    <span className="plans-unread-badge">
+                      {conversation.unread}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </button>
+          ))}
+        </section>
+      </main>
+    );
+  }
+
+  const isFridayNight = selectedChat.id === "friday-night";
+
   return (
-    <main className="tab-placeholder page-enter">
-      <div className="placeholder-mark">
-        <UsersRound size={25} />
+    <main className="plans-chat-page page-enter">
+      <header className="plans-chat-header">
+        <button
+          type="button"
+          className="plans-chat-back"
+          onClick={() => {
+            setSelectedChat(null);
+            setSelectedVote(null);
+          }}
+          aria-label="Back to chats"
+        >
+          <ArrowLeft size={20} />
+        </button>
+
+        <div className="plans-chat-avatars">
+          {selectedChat.initials.slice(0, 3).map((initials) => (
+            <span key={initials}>{initials}</span>
+          ))}
+        </div>
+
+        <div className="plans-chat-title">
+          <h1>{selectedChat.name}</h1>
+
+          <p>
+            {selectedChat.group
+              ? `${selectedChat.initials.length} members · Planning together`
+              : "Active recently"}
+          </p>
+        </div>
+
+        <button type="button" className="plans-chat-more">
+          <MoreHorizontal size={20} />
+        </button>
+      </header>
+
+      <section className="plans-chat-messages">
+        {isFridayNight ? (
+          <>
+            <div className="chat-message-row">
+              <div className="chat-avatar">MK</div>
+
+              <div>
+                <span className="chat-name">Maya · 4:12 PM</span>
+
+                <div className="chat-bubble">
+                  What&apos;s everyone feeling for Friday night?
+                </div>
+              </div>
+            </div>
+
+            <div className="shared-place-card">
+              <img src="/images/night-market.jpg" alt="" />
+
+              <div className="shared-place-copy">
+                <strong>Night Market</strong>
+
+                <span>
+                  <MapPin size={12} />
+                  Richmond, BC
+                </span>
+
+                <span>
+                  <Clock3 size={12} />
+                  Fri · 7:00 PM
+                </span>
+              </div>
+
+              <div className="shared-place-vote">
+                <strong>
+                  {selectedVote === "night-market" ? "6 votes" : "5 votes"}
+                </strong>
+
+                <button
+                  type="button"
+                  className={
+                    selectedVote === "night-market" ? "selected" : ""
+                  }
+                  onClick={() =>
+                    setSelectedVote(
+                      selectedVote === "night-market"
+                        ? null
+                        : "night-market",
+                    )
+                  }
+                >
+                  {selectedVote === "night-market" ? "Voted" : "Vote"}
+                </button>
+              </div>
+            </div>
+
+            <div className="chat-message-row">
+              <div className="chat-avatar">AR</div>
+
+              <div>
+                <span className="chat-name">Alex · 4:15 PM</span>
+
+                <div className="chat-bubble">
+                  This looks perfect. Let&apos;s do this.
+                </div>
+
+                <span className="chat-reaction">❤️ 2</span>
+              </div>
+            </div>
+
+            <div className="chat-message-row chat-message-me">
+              <div>
+                <div className="chat-bubble chat-bubble-me">
+                  What about bowling after?
+                </div>
+
+                <span className="chat-name">4:16 PM</span>
+              </div>
+            </div>
+
+            <div className="shared-place-card">
+              <img src="/images/arcade.jpg" alt="" />
+
+              <div className="shared-place-copy">
+                <strong>Bowling</strong>
+
+                <span>
+                  <MapPin size={12} />
+                  Richmond, BC
+                </span>
+
+                <span>
+                  <Clock3 size={12} />
+                  Fri · 8:00 PM
+                </span>
+              </div>
+
+              <div className="shared-place-vote">
+                <strong>
+                  {selectedVote === "bowling" ? "3 votes" : "2 votes"}
+                </strong>
+
+                <button
+                  type="button"
+                  className={selectedVote === "bowling" ? "selected" : ""}
+                  onClick={() =>
+                    setSelectedVote(
+                      selectedVote === "bowling" ? null : "bowling",
+                    )
+                  }
+                >
+                  {selectedVote === "bowling" ? "Voted" : "Vote"}
+                </button>
+              </div>
+            </div>
+
+            <div className="chat-message-row">
+              <div className="chat-avatar">JM</div>
+
+              <div>
+                <span className="chat-name">Jordan · 4:20 PM</span>
+
+                <div className="chat-bubble">
+                  Also down for bowling if we want a backup plan.
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="chat-message-row">
+              <div className="chat-avatar">
+                {selectedChat.initials[0]}
+              </div>
+
+              <div>
+                <span className="chat-name">{selectedChat.name}</span>
+
+                <div className="chat-bubble">
+                  {selectedChat.preview.replace(/^[^:]+:\s*/, "")}
+                </div>
+              </div>
+            </div>
+
+            <div className="chat-message-row chat-message-me">
+              <div>
+                <div className="chat-bubble chat-bubble-me">
+                  I&apos;m down. Send the place here.
+                </div>
+
+                <span className="chat-name">Now</span>
+              </div>
+            </div>
+
+            <div className="shared-place-card">
+              <img src="/images/coffee.jpg" alt="" />
+
+              <div className="shared-place-copy">
+                <strong>Heritage Coffee</strong>
+
+                <span>
+                  <MapPin size={12} />
+                  Vancouver, BC
+                </span>
+
+                <span>
+                  <Clock3 size={12} />
+                  Tonight · 7:30 PM
+                </span>
+              </div>
+
+              <div className="shared-place-vote">
+                <strong>1 vote</strong>
+
+                <button
+                  type="button"
+                  className={
+                    selectedVote === selectedChat.id ? "selected" : ""
+                  }
+                  onClick={() =>
+                    setSelectedVote(
+                      selectedVote === selectedChat.id
+                        ? null
+                        : selectedChat.id,
+                    )
+                  }
+                >
+                  {selectedVote === selectedChat.id ? "Voted" : "Vote"}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+
+      <div className="plans-tools">
+        <button type="button">
+          <Plus size={16} />
+          Send place
+        </button>
+
+        <button type="button">
+          <Ticket size={16} />
+          Poll
+        </button>
+
+        <button type="button">
+          <CalendarDays size={16} />
+          Date
+        </button>
+
+        <button type="button">
+          <MapPin size={16} />
+          Location
+        </button>
       </div>
 
-      <p className="section-eyebrow">PLANS / COMING NEXT</p>
+      <form
+        className="plans-message-box"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setMessage("");
+        }}
+      >
+        <input
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          placeholder="Send a message or place..."
+        />
 
-      <h1>Your plans, in one place</h1>
-
-      <p>
-        Group chats, shared places, polls and voting are the next social layer
-        we&apos;ll build.
-      </p>
-
-      <div className="plans-preview-card">
-        <div className="plans-preview-users">
-          <span>MK</span>
-          <span>AR</span>
-          <span>JM</span>
-        </div>
-
-        <strong>Friday night?</strong>
-
-        <div className="plans-preview-option">
-          <span>Night Market</span>
-          <strong>5 votes</strong>
-        </div>
-
-        <div className="plans-preview-option">
-          <span>Bowling</span>
-          <strong>2 votes</strong>
-        </div>
-      </div>
+        <button type="submit" disabled={!message.trim()}>
+          <Send size={17} />
+        </button>
+      </form>
     </main>
   );
 }
@@ -1759,7 +2141,7 @@ function YouPage() {
       <div className="profile-stats">
         <span>
           <strong>48</strong>
-          Instants
+          WEIN Now
         </span>
 
         <span>
@@ -1775,11 +2157,10 @@ function YouPage() {
 
       <div className="profile-tabs">
         <button type="button" className="selected">
-          Instants
+          WEIN Now
         </button>
 
         <button type="button">Saved</button>
-
         <button type="button">Collections</button>
       </div>
 
@@ -1803,26 +2184,11 @@ function BottomNav({
     name: Tab;
     icon: typeof Compass;
   }[] = [
-    {
-      name: "Discover",
-      icon: Compass,
-    },
-    {
-      name: "Live",
-      icon: Flame,
-    },
-    {
-      name: "Create",
-      icon: Plus,
-    },
-    {
-      name: "Plans",
-      icon: Ticket,
-    },
-    {
-      name: "You",
-      icon: UserRound,
-    },
+    { name: "Discover", icon: Compass },
+    { name: "Live", icon: Flame },
+    { name: "Create", icon: Plus },
+    { name: "Plans", icon: Ticket },
+    { name: "You", icon: UserRound },
   ];
 
   return (
@@ -1870,19 +2236,12 @@ function EmptyResults({ query }: { query: string }) {
 
 function Discover() {
   const [query, setQuery] = useState("");
-
   const [category, setCategory] = useState<Category>("All");
-
   const [saved, setSaved] = useState<string[]>([]);
-
   const [activeTab, setActiveTab] = useState<Tab>("Discover");
-
   const [saveMessage, setSaveMessage] = useState("");
-
   const [locationOpen, setLocationOpen] = useState(false);
-
   const [instantOpen, setInstantOpen] = useState(false);
-
   const [instantMessage, setInstantMessage] = useState("");
 
   const {
@@ -1899,7 +2258,9 @@ function Discover() {
       isSaved ? current.filter((item) => item !== id) : [...current, id],
     );
 
-    setSaveMessage(isSaved ? "Removed from your plans" : "Saved to your plans");
+    setSaveMessage(
+      isSaved ? "Removed from your plans" : "Saved to your plans",
+    );
 
     window.setTimeout(() => setSaveMessage(""), 1800);
   };
@@ -1912,31 +2273,23 @@ function Discover() {
         switch (category) {
           case "Trending":
             return item.status === "TRENDING";
-
           case "Tonight":
             return item.time !== "10:00 PM";
-
           case "Music":
             return item.category === "Music";
-
           case "Food":
             return item.category === "Food & Drink";
-
           case "Sports":
             return item.title.toLowerCase().includes("volleyball");
-
           case "Social":
             return (
               item.title.toLowerCase().includes("meet people") ||
               Boolean(item.social)
             );
-
           case "Free":
             return item.price === "Free";
-
           case "Learn":
             return item.category === "Learn";
-
           default:
             return true;
         }
@@ -1953,16 +2306,22 @@ function Discover() {
   }, [category, query]);
 
   const happening = filteredItems.filter(
-    (item) => item.id === "heritage-coffee" || item.id === "pixel-night",
+    (item) =>
+      item.id === "heritage-coffee" || item.id === "pixel-night",
   );
 
   const forYou = filteredItems.filter(
-    (item) => item.id === "river-sunset" || item.id === "heritage-coffee",
+    (item) =>
+      item.id === "river-sunset" || item.id === "heritage-coffee",
   );
 
-  const openNow = filteredItems.filter((item) => item.status === "OPEN NOW");
+  const openNow = filteredItems.filter(
+    (item) => item.status === "OPEN NOW",
+  );
 
-  const freeThisWeek = filteredItems.filter((item) => item.price === "Free");
+  const freeThisWeek = filteredItems.filter(
+    (item) => item.price === "Free",
+  );
 
   if (instantOpen) {
     return (
@@ -1972,8 +2331,7 @@ function Discover() {
           onPosted={() => {
             setInstantOpen(false);
             setActiveTab("Live");
-
-            setInstantMessage("Instant posted");
+            setInstantMessage("Posted to WEIN Now");
 
             window.setTimeout(() => setInstantMessage(""), 1800);
           }}
@@ -2000,7 +2358,9 @@ function Discover() {
               category={category}
               onCategoryChange={setCategory}
               location={location}
-              onLocationClick={() => setLocationOpen((open) => !open)}
+              onLocationClick={() =>
+                setLocationOpen((open) => !open)
+              }
             />
 
             <LocationPicker
@@ -2027,7 +2387,10 @@ function Discover() {
               onToggle={toggleSaved}
             />
 
-            <section className="content-section" id="happening-tonight">
+            <section
+              className="content-section"
+              id="happening-tonight"
+            >
               <SectionHeading
                 eyebrow="RIGHT NOW"
                 title="Happening tonight"
@@ -2063,15 +2426,18 @@ function Discover() {
 
               <div className="friends-scroller hide-scrollbar">
                 {friends.map((friend) => (
-                  <article className="friend-card" key={friend.initials}>
+                  <article
+                    className="friend-card"
+                    key={friend.initials}
+                  >
                     <div className="friend-image-wrap">
                       <img src={friend.image} alt="" />
-
-                      <span className="friend-avatar">{friend.initials}</span>
+                      <span className="friend-avatar">
+                        {friend.initials}
+                      </span>
                     </div>
 
                     <p className="friend-name">{friend.name}</p>
-
                     <p className="friend-plan">{friend.title}</p>
                   </article>
                 ))}
@@ -2109,7 +2475,10 @@ function Discover() {
 
             <section className="content-section split-section">
               <div>
-                <SectionHeading eyebrow="OPEN" title="Open right now" />
+                <SectionHeading
+                  eyebrow="OPEN"
+                  title="Open right now"
+                />
 
                 {openNow.length > 0 ? (
                   openNow.map((item) => (
@@ -2145,7 +2514,9 @@ function Discover() {
                     />
                   ))
                 ) : (
-                  <p className="muted-note">Try All for more free finds.</p>
+                  <p className="muted-note">
+                    Try All for more free finds.
+                  </p>
                 )}
               </div>
             </section>
@@ -2157,18 +2528,25 @@ function Discover() {
         )}
 
         {activeTab === "Live" && (
-          <LiveFeed onCreateInstant={() => setInstantOpen(true)} />
+          <LiveFeed
+            onCreateInstant={() => setInstantOpen(true)}
+          />
         )}
 
         {activeTab === "Create" && (
-          <CreateMenu onInstant={() => setInstantOpen(true)} />
+          <CreateMenu
+            onInstant={() => setInstantOpen(true)}
+          />
         )}
 
         {activeTab === "Plans" && <PlansPage />}
 
         {activeTab === "You" && <YouPage />}
 
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
         {saveMessage && (
           <div className="save-toast" role="status">
@@ -2192,19 +2570,12 @@ function Bored() {
   const [, setLocation] = useLocation();
 
   const [mood, setMood] = useState("Surprise me");
-
   const [when, setWhen] = useState("Tonight");
-
   const [budget, setBudget] = useState("Any");
-
   const [distance, setDistance] = useState("10 km");
-
   const [results, setResults] = useState<DiscoveryEvent[]>([]);
-
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
-
   const [locationOpen, setLocationOpen] = useState(false);
 
   const {
@@ -2226,32 +2597,28 @@ function Bored() {
 
   const choose = async () => {
     const now = new Date();
-
     const endOfToday = new Date(now);
 
     endOfToday.setHours(23, 59, 59, 999);
 
     let startDate = now.toISOString();
-
     let endDate = endOfToday.toISOString();
 
     if (when === "This weekend") {
-      const daysUntilSaturday = (6 - now.getDay() + 7) % 7 || 7;
+      const daysUntilSaturday =
+        (6 - now.getDay() + 7) % 7 || 7;
 
       const start = new Date(now);
 
       start.setDate(now.getDate() + daysUntilSaturday);
-
       start.setHours(0, 0, 0, 0);
 
       const end = new Date(start);
 
       end.setDate(start.getDate() + 1);
-
       end.setHours(23, 59, 59, 999);
 
       startDate = start.toISOString();
-
       endDate = end.toISOString();
     }
 
@@ -2265,7 +2632,9 @@ function Bored() {
             : undefined;
 
     const radiusKm =
-      distance === "Any" ? undefined : Number.parseInt(distance, 10);
+      distance === "Any"
+        ? undefined
+        : Number.parseInt(distance, 10);
 
     setLoading(true);
     setError("");
@@ -2279,7 +2648,12 @@ function Bored() {
         body: JSON.stringify({
           query: mood === "Surprise me" ? undefined : mood,
 
-          category: ["Music", "Food", "Sports", "Outdoors"].includes(mood)
+          category: [
+            "Music",
+            "Food",
+            "Sports",
+            "Outdoors",
+          ].includes(mood)
             ? mood
             : undefined,
 
@@ -2334,7 +2708,9 @@ function Bored() {
         <button
           type="button"
           className="bored-location-button"
-          onClick={() => setLocationOpen((open) => !open)}
+          onClick={() =>
+            setLocationOpen((open) => !open)
+          }
         >
           <MapPin size={14} />
           {locationLabel(location)}
@@ -2350,7 +2726,9 @@ function Bored() {
         />
 
         <div className="bored-hero">
-          <p className="section-eyebrow">WEIN / DECIDE FOR YOU</p>
+          <p className="section-eyebrow">
+            WEIN / DECIDE FOR YOU
+          </p>
 
           <h1 className="bored-page-title">
             Don&apos;t know
@@ -2361,24 +2739,33 @@ function Bored() {
           <p className="bored-page-pick">Let WEIN pick.</p>
 
           <p className="bored-page-copy">
-            Tell us what you&apos;re in the mood for and we&apos;ll find
-            something for you.
+            Tell us what you&apos;re in the mood for and
+            we&apos;ll find something for you.
           </p>
         </div>
 
         <div className="activity-stack">
           <figure className="activity-card activity-card-back">
-            <img src="/images/park.jpg" alt="A peaceful outdoor walk" />
+            <img
+              src="/images/park.jpg"
+              alt="A peaceful outdoor walk"
+            />
             <figcaption>OUTSIDE</figcaption>
           </figure>
 
           <figure className="activity-card activity-card-middle">
-            <img src="/images/coffee.jpg" alt="A warm coffee shop table" />
+            <img
+              src="/images/coffee.jpg"
+              alt="A warm coffee shop table"
+            />
             <figcaption>COFFEE</figcaption>
           </figure>
 
           <figure className="activity-card activity-card-front">
-            <img src="/images/arcade.jpg" alt="A lively arcade at night" />
+            <img
+              src="/images/arcade.jpg"
+              alt="A lively arcade at night"
+            />
             <figcaption>PLAY</figcaption>
           </figure>
         </div>
@@ -2400,7 +2787,9 @@ function Bored() {
                 <button
                   type="button"
                   key={option}
-                  className={mood === option ? "selected" : ""}
+                  className={
+                    mood === option ? "selected" : ""
+                  }
                   onClick={() => setMood(option)}
                 >
                   {option}
@@ -2413,11 +2802,17 @@ function Bored() {
             <span>When</span>
 
             <div className="bored-filter-options">
-              {["Now", "Tonight", "This weekend"].map((option) => (
+              {[
+                "Now",
+                "Tonight",
+                "This weekend",
+              ].map((option) => (
                 <button
                   type="button"
                   key={option}
-                  className={when === option ? "selected" : ""}
+                  className={
+                    when === option ? "selected" : ""
+                  }
                   onClick={() => setWhen(option)}
                 >
                   {option}
@@ -2430,11 +2825,18 @@ function Bored() {
             <span>Budget</span>
 
             <div className="bored-filter-options">
-              {["Free", "Under $25", "Under $50", "Any"].map((option) => (
+              {[
+                "Free",
+                "Under $25",
+                "Under $50",
+                "Any",
+              ].map((option) => (
                 <button
                   type="button"
                   key={option}
-                  className={budget === option ? "selected" : ""}
+                  className={
+                    budget === option ? "selected" : ""
+                  }
                   onClick={() => setBudget(option)}
                 >
                   {option}
@@ -2447,16 +2849,24 @@ function Bored() {
             <span>Distance</span>
 
             <div className="bored-filter-options">
-              {["5 km", "10 km", "25 km", "Any"].map((option) => (
-                <button
-                  type="button"
-                  key={option}
-                  className={distance === option ? "selected" : ""}
-                  onClick={() => setDistance(option)}
-                >
-                  {option}
-                </button>
-              ))}
+              {["5 km", "10 km", "25 km", "Any"].map(
+                (option) => (
+                  <button
+                    type="button"
+                    key={option}
+                    className={
+                      distance === option
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() =>
+                      setDistance(option)
+                    }
+                  >
+                    {option}
+                  </button>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -2473,7 +2883,9 @@ function Bored() {
             <Sparkles size={17} />
           )}
 
-          {loading ? "FINDING YOUR MOVE" : "I’M BORED"}
+          {loading
+            ? "FINDING YOUR MOVE"
+            : "I’M BORED"}
         </button>
 
         {error && (
@@ -2486,16 +2898,22 @@ function Bored() {
         {results.length > 0 && (
           <section className="bored-results">
             <div className="results-heading">
-              <p className="section-eyebrow">YOUR NEXT MOVES</p>
+              <p className="section-eyebrow">
+                YOUR NEXT MOVES
+              </p>
 
-              <span>{results.length} source-backed finds</span>
+              <span>
+                {results.length} source-backed finds
+              </span>
             </div>
 
             {results.map((event) => (
               <DiscoveryEventCard
                 key={event.id}
                 event={event}
-                saved={saved.includes(eventSaveId(event))}
+                saved={saved.includes(
+                  eventSaveId(event),
+                )}
                 onToggleSave={toggleSaved}
               />
             ))}
@@ -2509,19 +2927,16 @@ function Bored() {
 function EventDetail() {
   const [location, setLocation] = useLocation();
 
-  const eventId = decodeURIComponent(location.split("/").pop() || "").replace(
-    /^Ticketmaster:/i,
-    "",
-  );
+  const eventId = decodeURIComponent(
+    location.split("/").pop() || "",
+  ).replace(/^Ticketmaster:/i, "");
 
-  const [event, setEvent] = useState<DiscoveryEvent | null>(null);
+  const [event, setEvent] =
+    useState<DiscoveryEvent | null>(null);
 
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
-
   const [saved, setSaved] = useState(false);
-
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -2530,7 +2945,11 @@ function EventDetail() {
     setLoading(true);
     setError("");
 
-    fetch(`/api/discovery/event/${encodeURIComponent(eventId)}`)
+    fetch(
+      `/api/discovery/event/${encodeURIComponent(
+        eventId,
+      )}`,
+    )
       .then(async (response) => {
         const payload = (await response.json()) as
           | DiscoveryEvent
@@ -2580,9 +2999,13 @@ function EventDetail() {
     };
 
     if (navigator.share) {
-      await navigator.share(shareData).catch(() => undefined);
+      await navigator
+        .share(shareData)
+        .catch(() => undefined);
     } else {
-      await navigator.clipboard?.writeText(window.location.href);
+      await navigator.clipboard?.writeText(
+        window.location.href,
+      );
 
       setNotice("Link copied");
 
@@ -2604,12 +3027,17 @@ function EventDetail() {
       <main className="event-detail-state">
         <CircleAlert size={25} />
 
-        <p>{error || "That event is no longer available."}</p>
+        <p>
+          {error ||
+            "That event is no longer available."}
+        </p>
 
         <button
           type="button"
           className="outline-button"
-          onClick={() => setLocation("/discover")}
+          onClick={() =>
+            setLocation("/discover")
+          }
         >
           <ArrowLeft size={16} />
           Back to Discover
@@ -2623,14 +3051,20 @@ function EventDetail() {
       <button
         type="button"
         className="back-link"
-        onClick={() => setLocation("/discover")}
+        onClick={() =>
+          setLocation("/discover")
+        }
       >
         <ArrowLeft size={17} />
         Discover
       </button>
 
       {event.imageUrl ? (
-        <img src={event.imageUrl} alt="" className="event-detail-hero" />
+        <img
+          src={event.imageUrl}
+          alt=""
+          className="event-detail-hero"
+        />
       ) : (
         <div className="event-detail-hero event-detail-hero-fallback">
           <Compass size={32} />
@@ -2638,17 +3072,26 @@ function EventDetail() {
       )}
 
       <div className="event-detail-content">
-        <p className="section-eyebrow">{event.category}</p>
+        <p className="section-eyebrow">
+          {event.category}
+        </p>
 
         <div className="event-detail-title-row">
           <h1>{event.name}</h1>
 
           <button
             type="button"
-            className={`detail-save-button ${saved ? "is-saved" : ""}`}
-            onClick={() => setSaved((value) => !value)}
+            className={`detail-save-button ${
+              saved ? "is-saved" : ""
+            }`}
+            onClick={() =>
+              setSaved((value) => !value)
+            }
           >
-            <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
+            <Bookmark
+              size={18}
+              fill={saved ? "currentColor" : "none"}
+            />
           </button>
         </div>
 
@@ -2678,12 +3121,16 @@ function EventDetail() {
         {event.address && (
           <p className="event-detail-address">
             {event.address}
-            {event.city ? `, ${event.city}` : ""}
+            {event.city
+              ? `, ${event.city}`
+              : ""}
           </p>
         )}
 
         {event.description && (
-          <p className="event-detail-description">{event.description}</p>
+          <p className="event-detail-description">
+            {event.description}
+          </p>
         )}
 
         <div className="event-detail-actions">
@@ -2699,7 +3146,11 @@ function EventDetail() {
             </a>
           )}
 
-          <button type="button" className="outline-button" onClick={share}>
+          <button
+            type="button"
+            className="outline-button"
+            onClick={share}
+          >
             <Share2 size={15} />
             Share
           </button>
@@ -2707,22 +3158,35 @@ function EventDetail() {
           <button
             type="button"
             className="outline-button"
-            onClick={() => setNotice("Planning tools are coming next.")}
+            onClick={() =>
+              setNotice(
+                "Planning tools are coming next.",
+              )
+            }
           >
             Plan with friends
           </button>
         </div>
 
         <div className="event-trust">
-          <span>Source: {event.provider}</span>
+          <span>
+            Source: {event.provider}
+          </span>
 
           <span>
-            Last checked {new Date(event.lastVerifiedAt).toLocaleDateString()}
+            Last checked{" "}
+            {new Date(
+              event.lastVerifiedAt,
+            ).toLocaleDateString()}
           </span>
         </div>
       </div>
 
-      {notice && <div className="save-toast">{notice}</div>}
+      {notice && (
+        <div className="save-toast">
+          {notice}
+        </div>
+      )}
     </main>
   );
 }
@@ -2732,30 +3196,37 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Onboarding} />
-
         <Route path="/discover" component={Discover} />
-
         <Route path="/bored" component={Bored} />
-
         <Route path="/event/:id" component={EventDetail} />
-
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>
   );
 }
 
-function RoutedErrorBoundary({ children }: { children: ReactNode }) {
+function RoutedErrorBoundary({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [location] = useLocation();
 
-  return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
+  return (
+    <ErrorBoundary resetKey={location}>
+      {children}
+    </ErrorBoundary>
+  );
 }
 
 function App() {
   const routerBase =
     import.meta.env.BASE_URL === "/"
       ? ""
-      : import.meta.env.BASE_URL.replace(/\/$/, "");
+      : import.meta.env.BASE_URL.replace(
+          /\/$/,
+          "",
+        );
 
   return (
     <QueryClientProvider client={queryClient}>
