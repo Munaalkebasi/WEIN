@@ -1374,14 +1374,23 @@
 }
 
 .welcome-message h1 {
-  margin: 12px 0 18px;
+  margin: 8px auto 14px;
+  max-width: 300px;
   color: #ffffff;
-  font-family: var(--app-font-sans);
-  font-size: clamp(29px, 7vw, 38px);
+  font-size: 28px;
+  line-height: 1.08;
+  letter-spacing: -0.7px;
   font-weight: 700;
-  line-height: 1.16;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
+  text-align: center;
+}
+.welcome-message h1::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 2px;
+  margin: 14px auto 0;
+  border-radius: 999px;
+  background: #0b84ff;
 }
 
 .welcome-copy {
@@ -3403,29 +3412,262 @@ body,
   background: #1d3654;
   color: #65758c;
 }
-/* Plans conversation inbox */
-.plans-inbox { min-height: calc(100dvh - 74px); padding: 26px 18px 110px; background: #081526; }
-.plans-inbox-header h1 { margin: 8px 0; color: #fff; font-size: 30px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.15; }
-.plans-inbox-header > p:last-child { margin: 0; color: #97a7bd; font-size: 13px; }
-.plans-inbox-filters { display: flex; gap: 8px; margin: 24px 0 12px; }
-.plans-inbox-filters button { border: 1px solid #233652; border-radius: 999px; background: #0d1c2f; padding: 8px 16px; color: #a9b4c5; font-size: 12px; font-weight: 600; cursor: pointer; }
-.plans-inbox-filters button[aria-pressed="true"] { background: #102e55; color: #cbe4ff; border-color: #2568a9; }
-.plans-conversations { list-style: none; padding: 0; margin: 0; }
-.plans-conversation { width: 100%; display: flex; align-items: center; gap: 13px; padding: 19px 0; border: 0; border-bottom: 1px solid #1b2b40; background: transparent; text-align: left; cursor: pointer; }
-.plans-conversation:hover { background: #0d1c2f; }
-.plans-inbox-avatar { flex: 0 0 50px; width: 50px; height: 50px; position: relative; }
-.plans-inbox-avatar > span { display: grid; place-items: center; width: 50px; height: 50px; border: 2px solid #081526; border-radius: 50%; background: #17385f; color: #dbeaff; font-size: 13px; font-weight: 700; }
-.plans-inbox-avatar.is-group > span { position: absolute; width: 32px; height: 32px; font-size: 9px; }
-.plans-inbox-avatar.is-group > span:nth-child(2) { right: 0; bottom: 0; background: #284d66; }
-.plans-inbox-avatar.is-group > span:nth-child(3) { left: 0; bottom: 0; background: #35446c; }
-.plans-conversation-copy { flex: 1; min-width: 0; }
-.plans-conversation-copy strong { display: block; color: #f1f5fb; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-.plans-conversation-copy > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #91a1b6; font-size: 12px; line-height: 1.5; }
-.plans-conversation-meta { align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 8px; color: #8394aa; }
-.plans-conversation-meta time { font-size: 10px; white-space: nowrap; }
-.plans-unread { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #0b84ff; color: #fff; font-size: 10px; font-weight: 700; }
-.plans-inbox-empty { padding: 32px 12px; text-align: center; color: #97a7bd; font-size: 13px; }
-.plans-chat-back { display: grid; place-items: center; flex: 0 0 36px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #dce5f1; cursor: pointer; }
-.plans-chat-title h1 { overflow-wrap: anywhere; }
-.plans-chat-back:focus-visible, .plans-conversation:focus-visible, .plans-inbox-filters button:focus-visible { outline: 2px solid #0b84ff; outline-offset: 3px; }
-.plans-chat-messages .chat-bubble { overflow-wrap: anywhere; white-space: pre-wrap; }
+ /* =========================================================
+   WEIN — PLANS INBOX
+   ========================================================= */
+
+.plans-inbox-page {
+  min-height: calc(100dvh - 74px);
+  padding: 24px 16px 110px;
+  background: #081526;
+}
+
+.plans-inbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.plans-inbox-header h1 {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.plans-new-chat {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  border: 1px solid #29415f;
+  border-radius: 50%;
+  background: #0d1c2f;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.plans-new-chat:hover {
+  background: #10284f;
+}
+
+.plans-search {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  margin-bottom: 13px;
+  border: 1px solid #233652;
+  border-radius: 13px;
+  background: #0d1c2f;
+  color: #718097;
+}
+
+.plans-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.plans-search input::placeholder {
+  color: #718097;
+}
+
+.plans-inbox-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.plans-inbox-filters button {
+  padding: 7px 13px;
+  border: 1px solid #233652;
+  border-radius: 999px;
+  background: transparent;
+  color: #8f9db0;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.plans-inbox-filters button.selected {
+  border-color: #0b84ff;
+  background: #0b84ff;
+  color: #ffffff;
+}
+
+.plans-conversation-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.plans-conversation-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 2px;
+  border: 0;
+  border-bottom: 1px solid #182b42;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.plans-conversation-row:hover {
+  background: rgba(16, 40, 79, 0.28);
+}
+
+.plans-conversation-avatar {
+  position: relative;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+}
+
+.plans-conversation-avatar > span {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #081526;
+  border-radius: 50%;
+  background: #17385f;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.plans-conversation-avatar.is-group > span {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  font-size: 9px;
+}
+
+.plans-conversation-avatar.is-group > span:nth-child(1) {
+  top: 0;
+  left: 0;
+  z-index: 3;
+  background: #17385f;
+}
+
+.plans-conversation-avatar.is-group > span:nth-child(2) {
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  background: #224d6f;
+}
+
+.plans-conversation-avatar.is-group > span:nth-child(3) {
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+  background: #34496a;
+}
+
+.plans-conversation-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.plans-conversation-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.plans-conversation-name-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.plans-conversation-name-row > span {
+  flex: 0 0 auto;
+  color: #75849a;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.plans-conversation-name-row > span.has-unread {
+  color: #0b84ff;
+  font-weight: 700;
+}
+
+.plans-conversation-preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.plans-conversation-preview-row p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8d9caf;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.plans-unread-badge {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #0b84ff;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.plans-chat-back {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #dce5f1;
+  cursor: pointer;
+}
+
+.plans-chat-back:hover {
+  background: #10243d;
+}
+
+.plans-chat-back:focus-visible,
+.plans-new-chat:focus-visible,
+.plans-conversation-row:focus-visible,
+.plans-inbox-filters button:focus-visible {
+  outline: 2px solid #0b84ff;
+  outline-offset: 2px;
+}
