@@ -1,4 +1,4 @@
-import { handleDiscoveryRequest } from '../../src/server/discovery/api-handler';
+import { handleDiscoveryRequest } from '../../src/server/discovery/api-handler.js';
 
 export default async function handler(req: any, res: any) {
   const result = await handleDiscoveryRequest({

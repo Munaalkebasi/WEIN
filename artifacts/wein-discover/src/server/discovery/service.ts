@@ -3,8 +3,8 @@ import type {
   DiscoverySearchParams,
   DiscoverySearchResponse,
 } from '@/features/discovery/types';
-import { parseDiscoveryIntent } from './intent';
-import { ticketmasterProvider } from './providers/ticketmaster';
+import { parseDiscoveryIntent } from './intent.js';
+import { ticketmasterProvider } from './providers/ticketmaster.js';
 
 export class DiscoveryServiceError extends Error {
   constructor(

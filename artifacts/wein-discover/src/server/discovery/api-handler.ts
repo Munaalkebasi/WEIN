@@ -1,5 +1,5 @@
 import type { DiscoveryErrorResponse, DiscoverySearchParams } from '@/features/discovery/types';
-import { DiscoveryServiceError, getDiscoveryEvent, searchDiscoveryEvents } from './service';
+import { DiscoveryServiceError, getDiscoveryEvent, searchDiscoveryEvents } from './service.js';
 
 type ApiInput = {
   method?: string;
