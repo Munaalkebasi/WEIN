@@ -1,10 +1,12 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
-import plansRouter from "./plans";
+import { createPlansRouter, type PlansDatabase } from "./plans";
 
-const router: IRouter = Router();
+export function createRouter(database: PlansDatabase): IRouter {
+  const router: IRouter = Router();
 
-router.use(healthRouter);
-router.use(plansRouter);
+  router.use(healthRouter);
+  router.use(createPlansRouter(database));
 
-export default router;
+  return router;
+}

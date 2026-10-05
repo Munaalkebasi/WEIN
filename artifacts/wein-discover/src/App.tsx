@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import { PlansList, CreatePlanPage, PlanDetail } from "@/features/plans/pages";
 import {
   ArrowLeft,
   Apple,
@@ -119,17 +120,6 @@ type LivePost = {
   caption: string;
   likes: number;
   comments: number;
-};
-
-type PlanConversation = {
-  id: string;
-  name: string;
-  preview: string;
-  time: string;
-  unread?: number;
-  favorite?: boolean;
-  group?: boolean;
-  initials: string[];
 };
 
 const queryClient = new QueryClient();
@@ -1613,7 +1603,7 @@ function CreateInstant({
   );
 }
 
-function CreateMenu({ onInstant }: { onInstant: () => void }) {
+function CreateMenu({ onInstant, onPlan }: { onInstant: () => void; onPlan: () => void }) {
   const createOptions = [
     {
       title: "WEIN Now",
@@ -1633,7 +1623,8 @@ function CreateMenu({ onInstant }: { onInstant: () => void }) {
     },
     {
       title: "Plan",
-      description: "Make a plan and invite your friends.",
+      description: "Start a plan for your next outing.",
+      action: onPlan,
       icon: UsersRound,
     },
   ];
@@ -1679,436 +1670,6 @@ function CreateMenu({ onInstant }: { onInstant: () => void }) {
           decide to go.
         </p>
       </div>
-    </main>
-  );
-}
-
-function PlansPage() {
-  const [selectedChat, setSelectedChat] =
-    useState<PlanConversation | null>(null);
-
-  const [filter, setFilter] = useState<"All" | "Unread" | "Favorites">("All");
-
-  const [selectedVote, setSelectedVote] = useState<string | null>(null);
-
-  const [message, setMessage] = useState("");
-
-  const conversations: PlanConversation[] = [
-    {
-      id: "friday-night",
-      name: "Friday night",
-      preview: "Jordan: Also down for bowling.",
-      time: "4:20 PM",
-      unread: 3,
-      favorite: true,
-      group: true,
-      initials: ["MK", "AR", "JM"],
-    },
-    {
-      id: "girls-night",
-      name: "Girls night",
-      preview: "Amara: What about downtown?",
-      time: "3:42 PM",
-      unread: 2,
-      group: true,
-      initials: ["AR", "SK", "MS"],
-    },
-    {
-      id: "alex",
-      name: "Alex",
-      preview: "That coffee place looks good.",
-      time: "2:18 PM",
-      favorite: true,
-      initials: ["AR"],
-    },
-    {
-      id: "weekend",
-      name: "Weekend plans",
-      preview: "Maya shared Sunset Volleyball",
-      time: "Yesterday",
-      group: true,
-      initials: ["MS", "JM", "SK"],
-    },
-    {
-      id: "jae",
-      name: "Jae",
-      preview: "You: I’m down, send me the place",
-      time: "Yesterday",
-      initials: ["JM"],
-    },
-    {
-      id: "study-break",
-      name: "Study break",
-      preview: "Samira: We need to get out of the house 😭",
-      time: "Mon",
-      group: true,
-      initials: ["SK", "MK", "AR"],
-    },
-  ];
-
-  const filteredConversations = conversations.filter((conversation) => {
-    if (filter === "Unread") {
-      return Boolean(conversation.unread);
-    }
-
-    if (filter === "Favorites") {
-      return Boolean(conversation.favorite);
-    }
-
-    return true;
-  });
-
-  if (!selectedChat) {
-    return (
-      <main className="plans-inbox-page page-enter">
-        <header className="plans-inbox-header">
-          <div>
-            <p className="section-eyebrow">PLANS</p>
-            <h1>Chats</h1>
-          </div>
-
-          <button type="button" className="plans-new-chat">
-            <Plus size={19} />
-          </button>
-        </header>
-
-        <label className="plans-search">
-          <Search size={16} />
-          <input placeholder="Search chats" />
-        </label>
-
-        <div className="plans-inbox-filters">
-          {(["All", "Unread", "Favorites"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={filter === option ? "selected" : ""}
-              onClick={() => setFilter(option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-
-        <section className="plans-conversation-list">
-          {filteredConversations.map((conversation) => (
-            <button
-              type="button"
-              className="plans-conversation-row"
-              key={conversation.id}
-              onClick={() => setSelectedChat(conversation)}
-            >
-              <div
-                className={`plans-conversation-avatar ${
-                  conversation.group ? "is-group" : ""
-                }`}
-              >
-                {conversation.initials.slice(0, 3).map((initials) => (
-                  <span key={initials}>{initials}</span>
-                ))}
-              </div>
-
-              <div className="plans-conversation-copy">
-                <div className="plans-conversation-name-row">
-                  <strong>{conversation.name}</strong>
-
-                  <span
-                    className={
-                      conversation.unread ? "has-unread" : ""
-                    }
-                  >
-                    {conversation.time}
-                  </span>
-                </div>
-
-                <div className="plans-conversation-preview-row">
-                  <p>{conversation.preview}</p>
-
-                  {conversation.unread ? (
-                    <span className="plans-unread-badge">
-                      {conversation.unread}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            </button>
-          ))}
-        </section>
-      </main>
-    );
-  }
-
-  const isFridayNight = selectedChat.id === "friday-night";
-
-  return (
-    <main className="plans-chat-page page-enter">
-      <header className="plans-chat-header">
-        <button
-          type="button"
-          className="plans-chat-back"
-          onClick={() => {
-            setSelectedChat(null);
-            setSelectedVote(null);
-          }}
-          aria-label="Back to chats"
-        >
-          <ArrowLeft size={20} />
-        </button>
-
-        <div className="plans-chat-avatars">
-          {selectedChat.initials.slice(0, 3).map((initials) => (
-            <span key={initials}>{initials}</span>
-          ))}
-        </div>
-
-        <div className="plans-chat-title">
-          <h1>{selectedChat.name}</h1>
-
-          <p>
-            {selectedChat.group
-              ? `${selectedChat.initials.length} members · Planning together`
-              : "Active recently"}
-          </p>
-        </div>
-
-        <button type="button" className="plans-chat-more">
-          <MoreHorizontal size={20} />
-        </button>
-      </header>
-
-      <section className="plans-chat-messages">
-        {isFridayNight ? (
-          <>
-            <div className="chat-message-row">
-              <div className="chat-avatar">MK</div>
-
-              <div>
-                <span className="chat-name">Maya · 4:12 PM</span>
-
-                <div className="chat-bubble">
-                  What&apos;s everyone feeling for Friday night?
-                </div>
-              </div>
-            </div>
-
-            <div className="shared-place-card">
-              <img src="/images/night-market.jpg" alt="" />
-
-              <div className="shared-place-copy">
-                <strong>Night Market</strong>
-
-                <span>
-                  <MapPin size={12} />
-                  Richmond, BC
-                </span>
-
-                <span>
-                  <Clock3 size={12} />
-                  Fri · 7:00 PM
-                </span>
-              </div>
-
-              <div className="shared-place-vote">
-                <strong>
-                  {selectedVote === "night-market" ? "6 votes" : "5 votes"}
-                </strong>
-
-                <button
-                  type="button"
-                  className={
-                    selectedVote === "night-market" ? "selected" : ""
-                  }
-                  onClick={() =>
-                    setSelectedVote(
-                      selectedVote === "night-market"
-                        ? null
-                        : "night-market",
-                    )
-                  }
-                >
-                  {selectedVote === "night-market" ? "Voted" : "Vote"}
-                </button>
-              </div>
-            </div>
-
-            <div className="chat-message-row">
-              <div className="chat-avatar">AR</div>
-
-              <div>
-                <span className="chat-name">Alex · 4:15 PM</span>
-
-                <div className="chat-bubble">
-                  This looks perfect. Let&apos;s do this.
-                </div>
-
-                <span className="chat-reaction">❤️ 2</span>
-              </div>
-            </div>
-
-            <div className="chat-message-row chat-message-me">
-              <div>
-                <div className="chat-bubble chat-bubble-me">
-                  What about bowling after?
-                </div>
-
-                <span className="chat-name">4:16 PM</span>
-              </div>
-            </div>
-
-            <div className="shared-place-card">
-              <img src="/images/arcade.jpg" alt="" />
-
-              <div className="shared-place-copy">
-                <strong>Bowling</strong>
-
-                <span>
-                  <MapPin size={12} />
-                  Richmond, BC
-                </span>
-
-                <span>
-                  <Clock3 size={12} />
-                  Fri · 8:00 PM
-                </span>
-              </div>
-
-              <div className="shared-place-vote">
-                <strong>
-                  {selectedVote === "bowling" ? "3 votes" : "2 votes"}
-                </strong>
-
-                <button
-                  type="button"
-                  className={selectedVote === "bowling" ? "selected" : ""}
-                  onClick={() =>
-                    setSelectedVote(
-                      selectedVote === "bowling" ? null : "bowling",
-                    )
-                  }
-                >
-                  {selectedVote === "bowling" ? "Voted" : "Vote"}
-                </button>
-              </div>
-            </div>
-
-            <div className="chat-message-row">
-              <div className="chat-avatar">JM</div>
-
-              <div>
-                <span className="chat-name">Jordan · 4:20 PM</span>
-
-                <div className="chat-bubble">
-                  Also down for bowling if we want a backup plan.
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="chat-message-row">
-              <div className="chat-avatar">
-                {selectedChat.initials[0]}
-              </div>
-
-              <div>
-                <span className="chat-name">{selectedChat.name}</span>
-
-                <div className="chat-bubble">
-                  {selectedChat.preview.replace(/^[^:]+:\s*/, "")}
-                </div>
-              </div>
-            </div>
-
-            <div className="chat-message-row chat-message-me">
-              <div>
-                <div className="chat-bubble chat-bubble-me">
-                  I&apos;m down. Send the place here.
-                </div>
-
-                <span className="chat-name">Now</span>
-              </div>
-            </div>
-
-            <div className="shared-place-card">
-              <img src="/images/coffee.jpg" alt="" />
-
-              <div className="shared-place-copy">
-                <strong>Heritage Coffee</strong>
-
-                <span>
-                  <MapPin size={12} />
-                  Vancouver, BC
-                </span>
-
-                <span>
-                  <Clock3 size={12} />
-                  Tonight · 7:30 PM
-                </span>
-              </div>
-
-              <div className="shared-place-vote">
-                <strong>1 vote</strong>
-
-                <button
-                  type="button"
-                  className={
-                    selectedVote === selectedChat.id ? "selected" : ""
-                  }
-                  onClick={() =>
-                    setSelectedVote(
-                      selectedVote === selectedChat.id
-                        ? null
-                        : selectedChat.id,
-                    )
-                  }
-                >
-                  {selectedVote === selectedChat.id ? "Voted" : "Vote"}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </section>
-
-      <div className="plans-tools">
-        <button type="button">
-          <Plus size={16} />
-          Send place
-        </button>
-
-        <button type="button">
-          <Ticket size={16} />
-          Poll
-        </button>
-
-        <button type="button">
-          <CalendarDays size={16} />
-          Date
-        </button>
-
-        <button type="button">
-          <MapPin size={16} />
-          Location
-        </button>
-      </div>
-
-      <form
-        className="plans-message-box"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setMessage("");
-        }}
-      >
-        <input
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          placeholder="Send a message or place..."
-        />
-
-        <button type="submit" disabled={!message.trim()}>
-          <Send size={17} />
-        </button>
-      </form>
     </main>
   );
 }
@@ -2235,6 +1796,7 @@ function EmptyResults({ query }: { query: string }) {
 }
 
 function Discover() {
+  const [, navigate] = useLocation();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<Category>("All");
   const [saved, setSaved] = useState<string[]>([]);
@@ -2536,16 +2098,17 @@ function Discover() {
         {activeTab === "Create" && (
           <CreateMenu
             onInstant={() => setInstantOpen(true)}
+            onPlan={() => navigate("/plans/new")}
           />
         )}
 
-        {activeTab === "Plans" && <PlansPage />}
+
 
         {activeTab === "You" && <YouPage />}
 
         <BottomNav
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tab) => tab === "Plans" ? navigate("/plans") : setActiveTab(tab)}
         />
 
         {saveMessage && (
@@ -3197,6 +2760,9 @@ function Router() {
       <Switch>
         <Route path="/" component={Onboarding} />
         <Route path="/discover" component={Discover} />
+        <Route path="/plans/new" component={CreatePlanPage} />
+        <Route path="/plans/:id">{(params) => <PlanDetail planId={params.id} />}</Route>
+        <Route path="/plans" component={PlansList} />
         <Route path="/bored" component={Bored} />
         <Route path="/event/:id" component={EventDetail} />
         <Route component={NotFound} />
