@@ -74,7 +74,7 @@ function buildSearchUrl(params: DiscoverySearchParams, apiKey: string) {
   const url = new URL(`${TICKETMASTER_ENDPOINT}/events.json`);
   url.searchParams.set('apikey', apiKey);
   url.searchParams.set('size', String(Math.min(Math.max(params.limit || 20, 1), 50)));
-  url.searchParams.set('sort', params.sort === 'distance' ? 'distance,asc' : 'date,asc');
+  url.searchParams.set('sort', params.sort === 'distance' ? 'distance,asc' : params.sort === 'date' ? 'date,asc' : 'relevance,desc');
   url.searchParams.set('unit', 'km');
   url.searchParams.set('includeTBA', 'no');
   url.searchParams.set('includeTBD', 'no');
@@ -92,8 +92,11 @@ function buildSearchUrl(params: DiscoverySearchParams, apiKey: string) {
   return url;
 }
 
-async function ticketmasterFetch(path: string, params: URLSearchParams, apiKey: string) {
-  const response = await fetch(`${TICKETMASTER_ENDPOINT}${path}?${params.toString()}`);
+async function ticketmasterFetch(path: string, params: URLSearchParams) {
+  const response = await fetch(`${TICKETMASTER_ENDPOINT}${path}?${params.toString()}`, {
+    signal: AbortSignal.timeout(8000),
+  });
+  if (response.status === 404) return null;
   if (!response.ok) {
     const body = await response.text();
     throw new Error(`Ticketmaster responded with ${response.status}: ${body.slice(0, 180)}`);
@@ -111,8 +114,8 @@ export const ticketmasterProvider: EventProvider = {
     }
 
     const url = buildSearchUrl(params, apiKey);
-    const payload = await ticketmasterFetch('/events.json', new URLSearchParams(url.search), apiKey);
-    return (payload._embedded?.events || []).map(normalizeEvent);
+    const payload = await ticketmasterFetch('/events.json', new URLSearchParams(url.search));
+    return (payload?._embedded?.events || []).map(normalizeEvent);
   },
 
   async getEvent(providerId) {
@@ -121,7 +124,7 @@ export const ticketmasterProvider: EventProvider = {
       throw new Error('TICKETMASTER_API_KEY is not configured');
     }
 
-    const payload = await ticketmasterFetch(`/events/${encodeURIComponent(providerId)}.json`, new URLSearchParams({ apikey: apiKey }), apiKey);
-    return normalizeEvent(payload);
+    const payload = await ticketmasterFetch(`/events/${encodeURIComponent(providerId)}.json`, new URLSearchParams({ apikey: apiKey }));
+    return payload ? normalizeEvent(payload) : null;
   },
 };

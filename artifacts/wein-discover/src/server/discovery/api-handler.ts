@@ -1,5 +1,6 @@
-import type { DiscoveryErrorResponse, DiscoverySearchParams } from '@/features/discovery/types';
+import type { DiscoveryErrorResponse } from '@/features/discovery/types';
 import { DiscoveryServiceError, getDiscoveryEvent, searchDiscoveryEvents } from './service.js';
+import { discoverySearchSchema } from './validation.js';
 
 type ApiInput = {
   method?: string;
@@ -35,10 +36,11 @@ function errorResult(error: unknown): ApiResult {
 export async function handleDiscoveryRequest(input: ApiInput): Promise<ApiResult> {
   try {
     if (input.pathname === '/api/discovery/search' && input.method === 'POST') {
-      if (!input.body || typeof input.body !== 'object') {
-        return { status: 400, body: { code: 'invalid_search', message: 'Tell WEIN what you want to do first.' } };
+      const parsed = discoverySearchSchema.safeParse(input.body);
+      if (!parsed.success) {
+        return { status: 400, body: { code: 'invalid_search', message: 'Check your search text, location, dates, and price range.' } };
       }
-      const result = await searchDiscoveryEvents(input.body as DiscoverySearchParams);
+      const result = await searchDiscoveryEvents(parsed.data);
       return { status: 200, body: result };
     }
 

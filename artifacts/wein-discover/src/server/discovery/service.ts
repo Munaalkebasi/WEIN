@@ -51,6 +51,13 @@ function applyEligibility(events: DiscoveryEvent[], params: DiscoverySearchParam
 
 function rankEvents(events: DiscoveryEvent[], params: DiscoverySearchParams) {
   return [...events].sort((a, b) => {
+    if (params.sort === 'date') {
+      return (a.startTime ? Date.parse(a.startTime) : Infinity)
+        - (b.startTime ? Date.parse(b.startTime) : Infinity);
+    }
+    if (params.sort === 'distance') {
+      return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+    }
     const score = (event: DiscoveryEvent) => {
       let total = 0;
       if (params.category && event.category.toLowerCase().includes(params.category.toLowerCase())) total += 30;
