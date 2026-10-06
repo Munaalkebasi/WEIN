@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   CircleAlert,
@@ -17,13 +17,12 @@ import type {
 import {
   buildLiveMapSearch,
   getLiveMapBounds,
-  getLiveMapPosition,
   hasDiscoveryLocation,
   LIVE_MAP_CATEGORIES,
-  liveMapEmbedUrl,
   liveMapPlanPrefill,
   type LiveMapCategory,
 } from "./map";
+import { GeographicMap, type MapArea } from "./GeographicMap";
 import "./live-map.css";
 
 type Props = {
@@ -78,10 +77,29 @@ export function LiveMap({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [searchArea, setSearchArea] = useState<MapArea | null>(null);
+  const [pendingArea, setPendingArea] = useState<MapArea | null>(null);
+  const request = useRef<AbortController | null>(null);
+  const locationKey = JSON.stringify(location);
+  const searchLocation = searchArea
+    ? {
+        ...location,
+        city: undefined,
+        latitude: searchArea.latitude,
+        longitude: searchArea.longitude,
+      }
+    : location;
   const located = hasDiscoveryLocation(location);
+  useEffect(() => {
+    setSearchArea(null);
+    setPendingArea(null);
+  }, [locationKey]);
 
   const loadEvents = async () => {
     if (!located) return;
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
     setLoading(true);
     setError("");
 
@@ -89,11 +107,14 @@ export function LiveMap({
       const response = await fetch("/api/discovery/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildLiveMapSearch(location, category)),
+        signal: controller.signal,
+        body: JSON.stringify({
+          ...buildLiveMapSearch(searchLocation, category),
+          ...(searchArea ? { radiusKm: searchArea.radiusKm } : {}),
+        }),
       });
       const payload = (await response.json()) as
-        | DiscoverySearchResponse
-        | { message?: string };
+        DiscoverySearchResponse | { message?: string };
 
       if (!response.ok) {
         throw new Error(
@@ -103,6 +124,7 @@ export function LiveMap({
         );
       }
 
+      if (controller.signal.aborted) return;
       const nextEvents = (payload as DiscoverySearchResponse).events.filter(
         (event) =>
           event.latitude !== undefined && event.longitude !== undefined,
@@ -114,6 +136,7 @@ export function LiveMap({
           : nextEvents[0]?.id || null,
       );
     } catch (mapError) {
+      if (controller.signal.aborted) return;
       setEvents([]);
       setSelectedId(null);
       setError(
@@ -122,16 +145,18 @@ export function LiveMap({
           : "WEIN could not load nearby events.",
       );
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   };
 
   useEffect(() => {
     void loadEvents();
+    return () => request.current?.abort();
     // buildLiveMapSearch only depends on these primitive location fields.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     category,
+    searchArea,
     location.city,
     location.region,
     location.country,
@@ -142,8 +167,8 @@ export function LiveMap({
   ]);
 
   const bounds = useMemo(
-    () => getLiveMapBounds(events, location),
-    [events, location],
+    () => getLiveMapBounds(events, searchLocation),
+    [events, location, searchArea],
   );
   const selected =
     events.find((event) => event.id === selectedId) || events[0] || null;
@@ -175,7 +200,11 @@ export function LiveMap({
             )}
             Use current location
           </button>
-          <button type="button" className="secondary" onClick={onChooseLocation}>
+          <button
+            type="button"
+            className="secondary"
+            onClick={onChooseLocation}
+          >
             Choose city
           </button>
         </div>
@@ -211,7 +240,10 @@ export function LiveMap({
         </button>
       </div>
 
-      <div className="live-map-categories hide-scrollbar" aria-label="Map filters">
+      <div
+        className="live-map-categories hide-scrollbar"
+        aria-label="Map filters"
+      >
         {LIVE_MAP_CATEGORIES.map((value) => (
           <button
             key={value}
@@ -239,7 +271,7 @@ export function LiveMap({
             Try again
           </button>
         </div>
-      ) : !bounds || events.length === 0 ? (
+      ) : !bounds ? (
         <div className="live-map-state">
           <MapPin size={29} />
           <h3>Nothing mapped here yet</h3>
@@ -247,40 +279,41 @@ export function LiveMap({
         </div>
       ) : (
         <>
-          <div className="live-map-canvas">
-            <iframe
-              title="OpenStreetMap showing nearby WEIN events"
-              src={liveMapEmbedUrl(bounds)}
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
-            <div className="live-map-pins" aria-label="Events on map">
-              {events.map((event, index) => {
-                const position = getLiveMapPosition(event, bounds);
-                if (!position) return null;
-                const selectedPin = selected?.id === event.id;
-                return (
-                  <button
-                    type="button"
-                    key={event.id}
-                    className={selectedPin ? "live-map-pin selected" : "live-map-pin"}
-                    style={{ left: `${position.left}%`, top: `${position.top}%` }}
-                    onClick={() => setSelectedId(event.id)}
-                    aria-label={`Select ${event.name}`}
-                    aria-pressed={selectedPin}
-                  >
-                    <MapPin size={15} />
-                    <span>{index + 1}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <GeographicMap
+            key={locationKey}
+            events={events}
+            bounds={bounds}
+            selectedId={selected?.id || null}
+            onSelect={setSelectedId}
+            onAreaChange={setPendingArea}
+          />
+          {pendingArea && (
+            <button
+              className="live-map-search-area"
+              disabled={loading}
+              onClick={() => {
+                setSearchArea(pendingArea);
+                setPendingArea(null);
+              }}
+            >
+              Search this area
+            </button>
+          )}
+          {events.length === 0 && (
+            <p className="live-map-empty" role="status">
+              No events matched this area and category this week. Move the map
+              or try another category.
+            </p>
+          )}
 
           {selected && (
             <article className="live-map-card">
               {selected.imageUrl && (
-                <img src={selected.imageUrl} alt="" className="live-map-card-image" />
+                <img
+                  src={selected.imageUrl}
+                  alt=""
+                  className="live-map-card-image"
+                />
               )}
               <div className="live-map-card-copy">
                 <div className="live-map-card-title">

@@ -4,7 +4,13 @@ import type {
   DiscoverySearchParams,
 } from "@/features/discovery/types";
 
-export const LIVE_MAP_CATEGORIES = ["All", "Music", "Sports", "Food", "Free"] as const;
+export const LIVE_MAP_CATEGORIES = [
+  "All",
+  "Music",
+  "Sports",
+  "Food",
+  "Free",
+] as const;
 export type LiveMapCategory = (typeof LIVE_MAP_CATEGORIES)[number];
 
 export type LiveMapBounds = {
@@ -17,7 +23,7 @@ export type LiveMapBounds = {
 export function hasDiscoveryLocation(location: DiscoveryLocation) {
   return Boolean(
     location.city ||
-      (location.latitude !== undefined && location.longitude !== undefined),
+    (location.latitude !== undefined && location.longitude !== undefined),
   );
 }
 
@@ -51,8 +57,7 @@ export function getLiveMapBounds(
 ): LiveMapBounds | null {
   const coordinates = events
     .filter(
-      (event) =>
-        event.latitude !== undefined && event.longitude !== undefined,
+      (event) => event.latitude !== undefined && event.longitude !== undefined,
     )
     .map((event) => ({
       latitude: event.latitude as number,
@@ -91,38 +96,6 @@ export function getLiveMapBounds(
   };
 }
 
-export function getLiveMapPosition(
-  event: DiscoveryEvent,
-  bounds: LiveMapBounds,
-) {
-  if (event.latitude === undefined || event.longitude === undefined) return null;
-
-  const longitudeSpan = bounds.maxLongitude - bounds.minLongitude || 1;
-  const latitudeSpan = bounds.maxLatitude - bounds.minLatitude || 1;
-  const left =
-    ((event.longitude - bounds.minLongitude) / longitudeSpan) * 100;
-  const top =
-    ((bounds.maxLatitude - event.latitude) / latitudeSpan) * 100;
-
-  return {
-    left: Math.min(96, Math.max(4, left)),
-    top: Math.min(96, Math.max(4, top)),
-  };
-}
-
-export function liveMapEmbedUrl(bounds: LiveMapBounds) {
-  const bbox = [
-    bounds.minLongitude,
-    bounds.minLatitude,
-    bounds.maxLongitude,
-    bounds.maxLatitude,
-  ].join(",");
-
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-    bbox,
-  )}&layer=mapnik`;
-}
-
 export function liveMapPlanPrefill(event: DiscoveryEvent) {
   const place = [
     event.venueName,
@@ -140,10 +113,7 @@ export function liveMapPlanPrefill(event: DiscoveryEvent) {
 
   return {
     name: event.name,
-    description: [
-      "Added from WEIN Live Map.",
-      details,
-    ]
+    description: ["Added from WEIN Live Map.", details]
       .filter(Boolean)
       .join("\n\n"),
   };
