@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { PlansList, CreatePlanPage, PlanDetail } from "@/features/plans/pages";
+import { LiveMap } from "@/features/live/LiveMap";
 import {
   ArrowLeft,
   Apple,
@@ -1362,7 +1363,19 @@ function LivePostCard({ post }: { post: LivePost }) {
   );
 }
 
-function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
+function LiveFeed({
+  onCreateInstant,
+  location,
+  locationStatus,
+  onUseCurrentLocation,
+  onChooseLocation,
+}: {
+  onCreateInstant: () => void;
+  location: DiscoveryLocation;
+  locationStatus: LocationStatus;
+  onUseCurrentLocation: () => void;
+  onChooseLocation: () => void;
+}) {
   const [feedFilter, setFeedFilter] = useState<
     "For You" | "Nearby" | "Following"
   >("Nearby");
@@ -1398,6 +1411,13 @@ function LiveFeed({ onCreateInstant }: { onCreateInstant: () => void }) {
           </button>
         ))}
       </div>
+
+      <LiveMap
+        location={location}
+        locationStatus={locationStatus}
+        onUseCurrentLocation={onUseCurrentLocation}
+        onChooseLocation={onChooseLocation}
+      />
 
       <section className="live-stories-section">
         <div className="live-stories hide-scrollbar">
@@ -2092,6 +2112,13 @@ function Discover() {
         {activeTab === "Live" && (
           <LiveFeed
             onCreateInstant={() => setInstantOpen(true)}
+            location={location}
+            locationStatus={locationStatus}
+            onUseCurrentLocation={useCurrentLocation}
+            onChooseLocation={() => {
+              setActiveTab("Discover");
+              setLocationOpen(true);
+            }}
           />
         )}
 

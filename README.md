@@ -13,8 +13,11 @@ OpenAPI-generated clients and validators.
   form, and linkable Plan Detail pages. Detail displays members, attendance,
   decisions, shared ideas, polls, and conversation returned by the existing API.
   These detail sections are read-only in this milestone.
-- Live, other Create options, and profile/onboarding screens include prototype
-  content.
+- Live now includes a location-aware map backed by real discovery results. It
+  plots nearby events with OpenStreetMap, category filters, event detail links,
+  and an Add to Plan action that prefills the Create Plan form. The social Live
+  feed itself is still prototype content.
+- Other Create options and profile/onboarding screens include prototype content.
 - The separate planning API implements membership, messages, polls, decisions,
   attendance, media metadata, and memories. It needs `DATABASE_URL` and currently
   identifies callers through `X-User-Id`; production authentication remains work
@@ -114,6 +117,7 @@ missing configuration returns 503.
 ## Next milestones
 
 Integrate authentication and enable invitations, messaging, and poll/decision
-actions in the Plans UI. Replace remaining prototype content. Prompt date
-interpretation currently uses server time;
+actions in the Plans UI. Replace the remaining prototype Live social feed,
+Create options, and profile/onboarding content. Prompt date interpretation
+currently uses server time;
 user-timezone interpretation is still needed for geographically accurate dates.
