@@ -45,6 +45,15 @@ function dateLabel(value: string) {
       });
 }
 
+function planPrefill() {
+  if (typeof window === "undefined") return { name: "", description: "" };
+  const params = new URLSearchParams(window.location.search);
+  return {
+    name: params.get("name")?.slice(0, 120) ?? "",
+    description: params.get("description")?.slice(0, 2000) ?? "",
+  };
+}
+
 function Layout({ children }: { children: ReactNode }) {
   const [path] = useLocation();
   return (
@@ -202,8 +211,9 @@ export function CreatePlanPage() {
   const [actor] = useState(getPlansActor);
   const [, navigate] = useLocation();
   const cache = useQueryClient();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [prefill] = useState(planPrefill);
+  const [name, setName] = useState(prefill.name);
+  const [description, setDescription] = useState(prefill.description);
   const [privacy, setPrivacy] = useState<"private" | "public">("private");
   const [validation, setValidation] = useState("");
   const submitting = useRef(false);
