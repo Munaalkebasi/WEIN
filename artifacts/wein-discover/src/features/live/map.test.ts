@@ -67,3 +67,17 @@ test("creates a useful plan prefill from an event", () => {
   expect(prefill.description).toContain("Market Hall");
   expect(prefill.description).toContain("https://example.com/ticket");
 });
+
+test("excludes provider placeholder and invalid coordinates from map bounds", () => {
+  const bounds = getLiveMapBounds(
+    [
+      event,
+      { ...event, latitude: 0, longitude: 0 },
+      { ...event, latitude: NaN },
+      { ...event, longitude: 190 },
+    ],
+    {},
+  )!;
+  expect(bounds.minLatitude).toBeGreaterThan(49);
+  expect(bounds.maxLongitude).toBeLessThan(-123);
+});

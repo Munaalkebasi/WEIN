@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { DiscoveryEvent } from "../discovery/types";
-import type { LiveMapBounds } from "./map";
+import { hasMapCoordinates, type LiveMapBounds } from "./map";
 
 export type MapArea = { latitude: number; longitude: number; radiusKm: number };
 export function GeographicMap({
@@ -72,13 +72,7 @@ export function GeographicMap({
     if (!instance) return;
     const markers = L.layerGroup().addTo(instance);
     events.forEach((event, index) => {
-      if (
-        event.latitude === undefined ||
-        event.longitude === undefined ||
-        !Number.isFinite(event.latitude) ||
-        !Number.isFinite(event.longitude)
-      )
-        return;
+      if (!hasMapCoordinates(event)) return;
       const button = document.createElement("button");
       button.type = "button";
       button.className =
@@ -91,7 +85,7 @@ export function GeographicMap({
       );
       const tooltip = document.createElement("span");
       tooltip.textContent = event.name;
-      L.marker([event.latitude, event.longitude], {
+      L.marker([event.latitude!, event.longitude!], {
         icon: L.divIcon({
           html: button,
           className: "wein-geographic-marker",
