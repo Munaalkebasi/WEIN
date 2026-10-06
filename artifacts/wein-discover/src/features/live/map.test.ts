@@ -3,9 +3,7 @@ import type { DiscoveryEvent } from "@/features/discovery/types";
 import {
   buildLiveMapSearch,
   getLiveMapBounds,
-  getLiveMapPosition,
   hasDiscoveryLocation,
-  liveMapEmbedUrl,
   liveMapPlanPrefill,
 } from "./map";
 
@@ -28,7 +26,9 @@ const event: DiscoveryEvent = {
 
 test("detects usable live map locations", () => {
   expect(hasDiscoveryLocation({ city: "Vancouver" })).toBe(true);
-  expect(hasDiscoveryLocation({ latitude: 49.2, longitude: -123.1 })).toBe(true);
+  expect(hasDiscoveryLocation({ latitude: 49.2, longitude: -123.1 })).toBe(
+    true,
+  );
   expect(hasDiscoveryLocation({ latitude: 49.2 })).toBe(false);
   expect(hasDiscoveryLocation({})).toBe(false);
 });
@@ -52,16 +52,12 @@ test("builds a nearby event search and category filters", () => {
   expect(free.sort).toBe("date");
 });
 
-test("computes map bounds and stable pin percentages", () => {
-  const bounds = getLiveMapBounds([event], {});
-  expect(bounds).not.toBeNull();
-  const position = getLiveMapPosition(event, bounds!);
-  expect(position).not.toBeNull();
-  expect(position!.left).toBeGreaterThanOrEqual(4);
-  expect(position!.left).toBeLessThanOrEqual(96);
-  expect(position!.top).toBeGreaterThanOrEqual(4);
-  expect(position!.top).toBeLessThanOrEqual(96);
-  expect(liveMapEmbedUrl(bounds!)).toContain("openstreetmap.org/export/embed");
+test("computes geographic bounds containing the event coordinates", () => {
+  const bounds = getLiveMapBounds([event], {})!;
+  expect(bounds.minLatitude).toBeLessThan(event.latitude!);
+  expect(bounds.maxLatitude).toBeGreaterThan(event.latitude!);
+  expect(bounds.minLongitude).toBeLessThan(event.longitude!);
+  expect(bounds.maxLongitude).toBeGreaterThan(event.longitude!);
 });
 
 test("creates a useful plan prefill from an event", () => {

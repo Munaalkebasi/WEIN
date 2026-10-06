@@ -14,7 +14,7 @@ OpenAPI-generated clients and validators.
   decisions, shared ideas, polls, and conversation returned by the existing API.
   These detail sections are read-only in this milestone.
 - Live now includes a location-aware map backed by real discovery results. It
-  plots nearby events with OpenStreetMap, category filters, event detail links,
+  plots nearby events with Leaflet and OpenStreetMap tiles, category filters, event detail links,
   and an Add to Plan action that prefills the Create Plan form. The social Live
   feed itself is still prototype content.
 - Other Create options and profile/onboarding screens include prototype content.
@@ -162,3 +162,9 @@ actions in the Plans UI. Replace the remaining prototype Live social feed,
 Create options, and profile/onboarding content. Prompt date interpretation
 currently uses server time;
 user-timezone interpretation is still needed for geographically accurate dates.
+
+Live Map markers use geographic Leaflet coordinates and move with zoom/pan.
+After moving the map, choose **Search this area** to query discovery around
+the visible center and radius. Category changes retain that searched area;
+changing your chosen location resets it. Empty area results keep the map
+available for further exploration. Superseded requests are aborted.
