@@ -17,10 +17,11 @@ test.each([
     expect(window.location.pathname).toBe(path);
     expect(screen.getByRole("heading", { name: heading })).toBeTruthy();
     fireEvent.click(
-      screen.getByRole("button", { name: "Cancel", exact: true }),
+      screen.getByRole("button", { name: "Cancel" }),
     );
     expect(
       screen.getByRole("heading", { name: "What's the move?" }),
     ).toBeTruthy();
   },
 );
+
