@@ -1,3 +1,4 @@
+import { WeinAgent, eventPlanUrl } from "@/features/agent/Agent";
 import {
   type ChangeEvent,
   type FormEvent,
@@ -899,142 +900,17 @@ function DiscoveryAssistant({
   saved: string[];
   onToggleSave: (id: string) => void;
 }) {
-  const [prompt, setPrompt] = useState("");
-  const [results, setResults] = useState<DiscoveryEvent[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [error, setError] = useState("");
-
-  const search = async (event: FormEvent) => {
-    event.preventDefault();
-
-    const cleaned = prompt.trim();
-
-    if (!cleaned) {
-      setError("Tell WEIN what you want to do first.");
-      return;
-    }
-
-    setLoading(true);
-    setHasSearched(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/discovery/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: cleaned,
-          ...location,
-          limit: 8,
-        }),
-      });
-
-      const payload = (await response.json()) as
-        | DiscoverySearchResponse
-        | { message?: string };
-
-      if (!response.ok) {
-        throw new Error(
-          "message" in payload
-            ? payload.message
-            : "WEIN could not search right now.",
-        );
-      }
-
-      setResults((payload as DiscoverySearchResponse).events);
-    } catch (searchError) {
-      setResults([]);
-
-      setError(
-        searchError instanceof Error
-          ? searchError.message
-          : "WEIN could not search right now.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <section className="discovery-assistant">
-      <div className="assistant-heading">
-        <div>
-          <p className="section-eyebrow">TELL WEIN</p>
-          <h2>What are you in the mood for?</h2>
-        </div>
-
-        <Sparkles size={19} />
-      </div>
-
-      <form className="assistant-form" onSubmit={search}>
-        <input
-          value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
-          placeholder="Something fun tonight under $25..."
-          aria-label="Tell WEIN what you want to do"
+    <WeinAgent
+      location={location}
+      renderEvent={(event) => (
+        <DiscoveryEventCard
+          event={event}
+          saved={saved.includes(eventSaveId(event))}
+          onToggleSave={onToggleSave}
         />
-
-        <button
-          type="submit"
-          aria-label="Search real events"
-          disabled={loading}
-        >
-          {loading ? (
-            <LoaderCircle size={17} className="spin" />
-          ) : (
-            <ChevronRight size={18} />
-          )}
-        </button>
-      </form>
-
-      {!hasSearched && (
-        <p className="assistant-hint">
-          Try “live music within 10 km” or “something free this weekend.”
-        </p>
       )}
-
-      {loading && (
-        <p className="assistant-status">
-          <LoaderCircle size={14} className="spin" />
-          Finding your move...
-        </p>
-      )}
-
-      {error && (
-        <p className="assistant-error">
-          <CircleAlert size={14} />
-          {error}
-        </p>
-      )}
-
-      {!loading && hasSearched && !error && results.length === 0 && (
-        <p className="assistant-empty">
-          Nothing good matched that yet. Try widening your distance or
-          changing the time.
-        </p>
-      )}
-
-      {results.length > 0 && (
-        <div className="discovery-results">
-          <div className="results-heading">
-            <p className="section-eyebrow">REAL EVENTS</p>
-            <span>Source-backed results</span>
-          </div>
-
-          {results.map((event) => (
-            <DiscoveryEventCard
-              key={event.id}
-              event={event}
-              saved={saved.includes(eventSaveId(event))}
-              onToggleSave={onToggleSave}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+    />
   );
 }
 
@@ -2748,11 +2624,7 @@ function EventDetail() {
           <button
             type="button"
             className="outline-button"
-            onClick={() =>
-              setNotice(
-                "Planning tools are coming next.",
-              )
-            }
+            onClick={() => setLocation(eventPlanUrl(event))}
           >
             Plan with friends
           </button>

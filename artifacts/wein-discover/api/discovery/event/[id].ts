@@ -5,6 +5,7 @@ export default async function handler(req: any, res: any) {
     ? req.query.id[0]
     : req.query?.id;
 
+  res.setHeader('Cache-Control', 'no-store');
   const result = await handleDiscoveryRequest({
     method: req.method,
     pathname: `/api/discovery/event/${encodeURIComponent(id || "")}`,

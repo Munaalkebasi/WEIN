@@ -11,7 +11,7 @@
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:plans": "vitest run --config vitest.config.ts",
-    "test:server": "tsx --test src/server/discovery/*.test.ts src/server/plans/*.test.ts"
+    "test:server": "tsx --test src/server/discovery/*.test.ts src/server/plans/*.test.ts src/server/agent/*.test.ts"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",

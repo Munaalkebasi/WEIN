@@ -46,3 +46,9 @@ Thumbs.db
 
 .cache/
 .local/
+
+# Server credentials and Vercel metadata
+.env
+.env.*
+!.env.example
+.vercel/
