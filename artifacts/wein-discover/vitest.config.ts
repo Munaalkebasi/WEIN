@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   test: {
     environment: "jsdom",
-    include: ["src/features/plans/**/*.test.{ts,tsx}"],
+    include: ["src/features/{plans,live}/**/*.test.{ts,tsx}"],
     setupFiles: ["src/features/plans/test-setup.ts"],
   },
 });
