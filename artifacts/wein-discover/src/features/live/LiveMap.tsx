@@ -17,6 +17,7 @@ import type {
 import {
   buildLiveMapSearch,
   getLiveMapBounds,
+  hasMapCoordinates,
   hasDiscoveryLocation,
   LIVE_MAP_CATEGORIES,
   liveMapPlanPrefill,
@@ -126,8 +127,7 @@ export function LiveMap({
 
       if (controller.signal.aborted) return;
       const nextEvents = (payload as DiscoverySearchResponse).events.filter(
-        (event) =>
-          event.latitude !== undefined && event.longitude !== undefined,
+        hasMapCoordinates,
       );
       setEvents(nextEvents);
       setSelectedId((current) =>

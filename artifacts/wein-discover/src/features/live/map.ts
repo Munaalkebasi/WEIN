@@ -20,6 +20,22 @@ export type LiveMapBounds = {
   maxLongitude: number;
 };
 
+// Some providers use 0,0 as a missing-venue placeholder.
+export function hasMapCoordinates(point: {
+  latitude?: number;
+  longitude?: number;
+}) {
+  return (
+    point.latitude !== undefined &&
+    point.longitude !== undefined &&
+    Number.isFinite(point.latitude) &&
+    Number.isFinite(point.longitude) &&
+    Math.abs(point.latitude) <= 90 &&
+    Math.abs(point.longitude) <= 180 &&
+    !(point.latitude === 0 && point.longitude === 0)
+  );
+}
+
 export function hasDiscoveryLocation(location: DiscoveryLocation) {
   return Boolean(
     location.city ||
@@ -55,14 +71,10 @@ export function getLiveMapBounds(
   events: DiscoveryEvent[],
   location: DiscoveryLocation,
 ): LiveMapBounds | null {
-  const coordinates = events
-    .filter(
-      (event) => event.latitude !== undefined && event.longitude !== undefined,
-    )
-    .map((event) => ({
-      latitude: event.latitude as number,
-      longitude: event.longitude as number,
-    }));
+  const coordinates = events.filter(hasMapCoordinates).map((event) => ({
+    latitude: event.latitude as number,
+    longitude: event.longitude as number,
+  }));
 
   if (
     coordinates.length === 0 &&
