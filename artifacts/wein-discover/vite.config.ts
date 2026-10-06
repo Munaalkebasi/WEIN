@@ -10,6 +10,14 @@ export const plansProxyPattern = "^/api/plans(?:[/?]|$)";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, import.meta.dirname, "");
+  // Load only server secrets into Node; Vite exposes only VITE_* to browsers.
+  for (const name of [
+    "TICKETMASTER_API_KEY",
+    "OPENAI_API_KEY",
+    "OPENAI_MODEL",
+  ]) {
+    if (!process.env[name] && env[name]) process.env[name] = env[name];
+  }
   return {
     base: basePath,
 

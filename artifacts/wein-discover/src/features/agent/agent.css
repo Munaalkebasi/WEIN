@@ -1,0 +1,33 @@
+.agent-messages {
+  display: grid;
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 14px 0;
+}
+.agent-message {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.agent-user {
+  margin-left: 24px;
+}
+.agent-assistant {
+  margin-right: 24px;
+}
+.agent-message strong {
+  font-size: 11px;
+  opacity: 0.65;
+}
+.agent-recommendation {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}

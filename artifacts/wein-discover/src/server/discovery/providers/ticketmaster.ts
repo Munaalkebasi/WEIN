@@ -86,8 +86,8 @@ function buildSearchUrl(params: DiscoverySearchParams, apiKey: string) {
     url.searchParams.set('latlong', `${params.latitude},${params.longitude}`);
   }
   if (params.radiusKm) url.searchParams.set('radius', String(params.radiusKm));
-  if (params.startDate) url.searchParams.set('startDateTime', params.startDate);
-  if (params.endDate) url.searchParams.set('endDateTime', params.endDate);
+  if (params.startDate) url.searchParams.set('startDateTime', new Date(params.startDate).toISOString().replace(/\.\d{3}Z$/, 'Z'));
+  if (params.endDate) url.searchParams.set('endDateTime', new Date(params.endDate).toISOString().replace(/\.\d{3}Z$/, 'Z'));
   if (params.currency) url.searchParams.set('currency', params.currency);
   return url;
 }
@@ -98,8 +98,8 @@ async function ticketmasterFetch(path: string, params: URLSearchParams) {
   });
   if (response.status === 404) return null;
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Ticketmaster responded with ${response.status}: ${body.slice(0, 180)}`);
+    // Never return upstream bodies or key-bearing URLs.
+    throw new Error(`Ticketmaster responded with ${response.status}`);
   }
   return response.json();
 }
@@ -108,7 +108,7 @@ export const ticketmasterProvider: EventProvider = {
   name: 'Ticketmaster',
 
   async searchEvents(params) {
-    const apiKey = process.env.TICKETMASTER_API_KEY;
+    const apiKey = process.env.TICKETMASTER_API_KEY?.trim();
     if (!apiKey) {
       throw new Error('TICKETMASTER_API_KEY is not configured');
     }
@@ -119,7 +119,7 @@ export const ticketmasterProvider: EventProvider = {
   },
 
   async getEvent(providerId) {
-    const apiKey = process.env.TICKETMASTER_API_KEY;
+    const apiKey = process.env.TICKETMASTER_API_KEY?.trim();
     if (!apiKey) {
       throw new Error('TICKETMASTER_API_KEY is not configured');
     }

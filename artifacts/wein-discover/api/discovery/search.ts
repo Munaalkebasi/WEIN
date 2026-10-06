@@ -1,6 +1,7 @@
 import { handleDiscoveryRequest } from '../../src/server/discovery/api-handler.js';
 
 export default async function handler(req: any, res: any) {
+  res.setHeader('Cache-Control', 'no-store');
   const result = await handleDiscoveryRequest({
     method: req.method,
     pathname: '/api/discovery/search',

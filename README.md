@@ -114,6 +114,47 @@ price ranges, and supported sort modes. Provider requests time out after eight
 seconds. Missing provider events return 404; provider failures return 502 and
 missing configuration returns 503.
 
+## WEIN AI and Vercel configuration
+
+The Discover assistant uses OpenAI's Responses API with server-executed discovery,
+event-detail and Plan-prefill tools. It keeps conversation history and filters
+in the current page session, sends only bounded messages, and recommends events
+returned by the existing Ticketmaster discovery service. The Plan action opens
+the existing form for review; it does not create a Plan automatically. Location
+and chat messages are sent to OpenAI. Event details and Plan buttons use verified
+provider data. Provider and AI failures remain visible, with retryable input.
+
+In Vercel project **wein-app** (team **wein3**), use root directory
+`artifacts/wein-discover`. Keep the existing monorepo installation settings;
+the frontend output directory is `dist/public`. The checked-in API functions
+are served at `/api/discovery/search`, `/api/discovery/event/:id` and
+`/api/agent/chat`; the SPA rewrite explicitly excludes `/api/`.
+
+Configure these server-side variables for **Production** and **Preview**:
+
+| Variable | Purpose |
+| --- | --- |
+| TICKETMASTER_API_KEY | Required for real Live Map searches and event details |
+| OPENAI_API_KEY | Required for WEIN AI chat; use an API project with billing and model access |
+| OPENAI_MODEL | Optional; defaults to gpt-4.1-mini, must support Responses function calling |
+| PLANS_API_URL | Required for creating/saving Plans through the Vercel proxy; deployed Express origin, without /api |
+
+Set `DATABASE_URL` on the separate Express backend, not the frontend functions.
+Use `.env.local` in `artifacts/wein-discover` for local development; the Vite
+middleware loads only the server variable allowlist into Node. Never use
+`VITE_TICKETMASTER_API_KEY` or `VITE_OPENAI_API_KEY`. Environment files and
+Vercel metadata are ignored by Git. No real keys are committed.
+
+**Redeploy after changing Vercel variables**: existing deployments retain their
+original environment. A Ready build alone is not proof of working APIs. Verify
+a Live Map search, an event detail, and an AI request on the production domain.
+The agent returns 503 for missing configuration, 502 for upstream failures, and
+400 for invalid input. It uses a bounded four-round tool loop and a 45-second
+model deadline, with a 60-second Vercel function duration. No upstream error body
+or secret is returned to the browser. Tests mock providers and model output;
+live integration requires real configured keys. Use Vercel Firewall rate limits
+and OpenAI project spending limits to manage this public chat endpoint's usage.
+
 ## Next milestones
 
 Integrate authentication and enable invitations, messaging, and poll/decision
