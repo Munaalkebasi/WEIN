@@ -85,7 +85,7 @@ function buildSearchUrl(params: DiscoverySearchParams, apiKey: string) {
   if (params.latitude !== undefined && params.longitude !== undefined) {
     url.searchParams.set('latlong', `${params.latitude},${params.longitude}`);
   }
-  if (params.radiusKm) url.searchParams.set('radius', String(params.radiusKm));
+  if (params.radiusKm) url.searchParams.set('radius', String(Math.ceil(params.radiusKm))); // Ticketmaster accepts whole kilometres.
   if (params.startDate) url.searchParams.set('startDateTime', new Date(params.startDate).toISOString().replace(/\.\d{3}Z$/, 'Z'));
   if (params.endDate) url.searchParams.set('endDateTime', new Date(params.endDate).toISOString().replace(/\.\d{3}Z$/, 'Z'));
   if (params.currency) url.searchParams.set('currency', params.currency);

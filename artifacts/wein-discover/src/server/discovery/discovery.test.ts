@@ -101,3 +101,14 @@ test('supports empty results and free-only searches', async () => {
   const result = await search({ freeOnly: true });
   assert.deepEqual((result.body as { events: { providerId: string }[] }).events.map(e => e.providerId), ['free']);
 });
+
+test('rounds viewport radius up for Ticketmaster while retaining exact local distance filtering', async () => {
+  process.env.TICKETMASTER_API_KEY = 'test-key';
+  globalThis.fetch = async url => {
+    assert.equal(new URL(String(url)).searchParams.get('radius'), '4');
+    return Response.json({ _embedded: { events: [event('near'), event('beyond', { _embedded: { venues: [{ location: { latitude: '49.033', longitude: '-123' } }] } })] } });
+  };
+  const result = await search({ latitude: 49, longitude: -123, radiusKm: 3.5 });
+  assert.equal(result.status, 200);
+  assert.deepEqual((result.body as {events:{providerId:string}[]}).events.map(e => e.providerId), ['near']);
+});
