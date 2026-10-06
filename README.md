@@ -159,7 +159,7 @@ and OpenAI project spending limits to manage this public chat endpoint's usage.
 
 Integrate authentication and enable invitations, messaging, and poll/decision
 actions in the Plans UI. Replace the remaining prototype Live social feed,
-Create options, and profile/onboarding content. Prompt date interpretation
+WEIN Now posting, and profile/onboarding content. Prompt date interpretation
 currently uses server time;
 user-timezone interpretation is still needed for geographically accurate dates.
 
@@ -168,3 +168,15 @@ After moving the map, choose **Search this area** to query discovery around
 the visible center and radius. Category changes retain that searched area;
 changing your chosen location resets it. Empty area results keep the map
 available for further exploration. Superseded requests are aborted.
+
+## Browser-saved Activity and Event creation
+
+Create → Activity and Event open validated forms at `/create/activity` and
+`/create/event`. Saved entries live in `wein-creations-v1` in browser storage,
+with a list at `/creations`, detail pages, editing and a prefilled Plan action.
+Events include organizer and optional ticket information. Dates use the device
+time zone; costs are CAD. Save errors preserve form values, and unreadable
+stored data is never silently overwritten. These are explicitly local entries,
+not published listings: clearing browser data removes them and they do not sync
+across devices or appear in other users' discovery. No additional environment
+variables are required. WEIN Now posting remains the existing prototype flow.

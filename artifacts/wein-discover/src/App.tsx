@@ -15,6 +15,11 @@ import NotFound from "@/pages/not-found";
 import { PlansList, CreatePlanPage, PlanDetail } from "@/features/plans/pages";
 import { LiveMap } from "@/features/live/LiveMap";
 import {
+  CreationEditor,
+  CreationDetail,
+  CreationsList,
+} from "@/features/creations/pages";
+import {
   ArrowLeft,
   Apple,
   Bell,
@@ -1499,7 +1504,13 @@ function CreateInstant({
   );
 }
 
-function CreateMenu({ onInstant, onPlan }: { onInstant: () => void; onPlan: () => void }) {
+function CreateMenu({ onInstant, onPlan, onActivity, onEvent, onSaved }: {
+  onInstant: () => void;
+  onPlan: () => void;
+  onActivity: () => void;
+  onEvent: () => void;
+  onSaved: () => void;
+}) {
   const createOptions = [
     {
       title: "WEIN Now",
@@ -1509,13 +1520,15 @@ function CreateMenu({ onInstant, onPlan }: { onInstant: () => void; onPlan: () =
     },
     {
       title: "Activity",
-      description: "Create something people nearby can join.",
+      description: "Save a meetup with a place and time.",
       icon: Flame,
+      action: onActivity,
     },
     {
       title: "Event",
-      description: "Post an organized event.",
+      description: "Save the details of an organized event.",
       icon: Ticket,
+      action: onEvent,
     },
     {
       title: "Plan",
@@ -1557,6 +1570,12 @@ function CreateMenu({ onInstant, onPlan }: { onInstant: () => void; onPlan: () =
         ))}
       </div>
 
+      <button type="button" className="outline-button" onClick={onSaved}>
+        Your activities &amp; events
+      </button>
+      <p className="plan-profile-note">
+        Activities and events are saved in this browser for now.
+      </p>
       <div className="create-tip">
         <Sparkles size={18} />
 
@@ -1696,7 +1715,11 @@ function Discover() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<Category>("All");
   const [saved, setSaved] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<Tab>("Discover");
+  const [activeTab, setActiveTab] = useState<Tab>(() =>
+    new URLSearchParams(window.location.search).get("tab") === "Create"
+      ? "Create"
+      : "Discover",
+  );
   const [saveMessage, setSaveMessage] = useState("");
   const [locationOpen, setLocationOpen] = useState(false);
   const [instantOpen, setInstantOpen] = useState(false);
@@ -2002,6 +2025,9 @@ function Discover() {
           <CreateMenu
             onInstant={() => setInstantOpen(true)}
             onPlan={() => navigate("/plans/new")}
+            onActivity={() => navigate("/create/activity")}
+            onEvent={() => navigate("/create/event")}
+            onSaved={() => navigate("/creations")}
           />
         )}
 
@@ -2659,6 +2685,19 @@ function Router() {
       <Switch>
         <Route path="/" component={Onboarding} />
         <Route path="/discover" component={Discover} />
+        <Route path="/create/activity">
+          {() => <CreationEditor kind="activity" />}
+        </Route>
+        <Route path="/create/event">
+          {() => <CreationEditor kind="event" />}
+        </Route>
+        <Route path="/creations/:id/edit">
+          {(params) => <CreationEditor id={params.id} />}
+        </Route>
+        <Route path="/creations/:id">
+          {(params) => <CreationDetail id={params.id} />}
+        </Route>
+        <Route path="/creations" component={CreationsList} />
         <Route path="/plans/new" component={CreatePlanPage} />
         <Route path="/plans/:id">{(params) => <PlanDetail planId={params.id} />}</Route>
         <Route path="/plans" component={PlansList} />
