@@ -186,4 +186,3 @@ test("bounds tool loops and does not accept fabricated action IDs", async () => 
   assert.equal(result.status, 502);
   assert.equal((result.body as any).action, undefined);
 });
-
