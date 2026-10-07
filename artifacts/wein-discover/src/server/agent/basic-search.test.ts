@@ -69,4 +69,3 @@ test("failed provider keeps an error response without exposing upstream secrets"
   assert.equal(result.status, 503);
   assert.doesNotMatch(JSON.stringify(result.body), /test-ticketmaster/);
 });
-
