@@ -64,7 +64,7 @@ function fillForm() {
 test("saves an activity once and opens its details, which survive a reload", async () => {
   const location = mount("/create/activity");
   fillForm();
-  const button = screen.getByRole("button", { name: "Save activity" });
+  const button = screen.getByRole("button", { name: "Save hangout" });
   fireEvent.click(button);
   fireEvent.click(button);
   await screen.findByRole("heading", { name: fields.title });
@@ -125,20 +125,20 @@ test("storage failure keeps the form available and retries without duplicate sav
   const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
     throw new DOMException("Full", "QuotaExceededError");
   });
-  fireEvent.click(screen.getByRole("button", { name: "Save activity" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save hangout" }));
   await screen.findByRole("alert");
   expect((screen.getByLabelText("Title *") as HTMLInputElement).value).toBe(
     fields.title,
   );
   expect(readCreations()).toHaveLength(0);
   spy.mockRestore();
-  fireEvent.click(screen.getByRole("button", { name: "Save activity" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save hangout" }));
   await screen.findByRole("heading", { name: fields.title });
   expect(readCreations()).toHaveLength(1);
 });
 test("empty list and missing details have recovery links", () => {
   mount("/creations");
-  expect(screen.getByText("No activities or events yet")).toBeTruthy();
+  expect(screen.getByText("No hangouts or events yet")).toBeTruthy();
   expect(
     screen.getByRole("link", { name: "Create event" }).getAttribute("href"),
   ).toBe("/create/event");
@@ -146,7 +146,7 @@ test("empty list and missing details have recovery links", () => {
   mount("/creations/missing");
   expect(
     screen.getByRole("heading", {
-      name: "Couldn't find this activity or event",
+      name: "Couldn't find this hangout or event",
     }),
   ).toBeTruthy();
 });

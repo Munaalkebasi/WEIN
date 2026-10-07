@@ -1519,20 +1519,20 @@ function CreateMenu({ onInstant, onPlan, onActivity, onEvent, onSaved }: {
       action: onInstant,
     },
     {
-      title: "Activity",
-      description: "Save a meetup with a place and time.",
+      title: "Hangout",
+      description: "Set up a quick, casual meetup.",
       icon: Flame,
       action: onActivity,
     },
     {
       title: "Event",
-      description: "Save the details of an organized event.",
+      description: "Set up an organized event with a time and venue.",
       icon: Ticket,
       action: onEvent,
     },
     {
       title: "Plan",
-      description: "Start a plan for your next outing.",
+      description: "Plan together: choose what to do, where and when.",
       action: onPlan,
       icon: UsersRound,
     },
@@ -1571,10 +1571,10 @@ function CreateMenu({ onInstant, onPlan, onActivity, onEvent, onSaved }: {
       </div>
 
       <button type="button" className="outline-button" onClick={onSaved}>
-        Your activities &amp; events
+        Your hangouts &amp; events
       </button>
       <p className="plan-profile-note">
-        Activities and events are saved in this browser for now.
+        Hangouts and events are saved in this browser for now.
       </p>
       <div className="create-tip">
         <Sparkles size={18} />

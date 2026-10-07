@@ -26,7 +26,7 @@ function Layout({ children }: { children: ReactNode }) {
       </main>
       <nav className="plan-navigation" aria-label="Main navigation">
         <Link href="/discover">Discover</Link>
-        <Link href="/creations">Your activities & events</Link>
+        <Link href="/creations">Your hangouts & events</Link>
         <Link href="/plans">Plans</Link>
       </nav>
     </div>
@@ -43,7 +43,7 @@ function useSaved() {
       return {
         items: [],
         error:
-          "We couldn't read your saved activities and events. Your stored data has been kept. Check browser storage access and try again.",
+          "We couldn't read your saved hangouts and events. Your stored data has been kept. Check browser storage access and try again.",
       };
     }
   }
@@ -78,7 +78,7 @@ export function CreationsList() {
       <header className="plan-heading">
         <div>
           <p className="section-eyebrow">YOUR IDEAS</p>
-          <h1>Your activities & events</h1>
+          <h1>Your hangouts & events</h1>
         </div>
       </header>
       <p className="plan-profile-note">
@@ -87,7 +87,7 @@ export function CreationsList() {
       </p>
       <div className="plan-form-actions">
         <Link className="plan-primary" href="/create/activity">
-          Create activity
+          Create hangout
         </Link>
         <Link className="plan-primary" href="/create/event">
           Create event
@@ -98,7 +98,7 @@ export function CreationsList() {
       ) : items.length ? (
         <section
           className="plan-list creation-list"
-          aria-label="Saved activities and events"
+          aria-label="Saved hangouts and events"
         >
           {items.map((item) => (
             <Link
@@ -113,7 +113,7 @@ export function CreationsList() {
                 <h2>{item.title}</h2>
                 <p>{item.place}</p>
                 <div className="plan-card-meta">
-                  <span>{item.kind === "activity" ? "Activity" : "Event"}</span>
+                  <span>{item.kind === "activity" ? "Hangout" : "Event"}</span>
                   <span>{dateLabel(item.start)}</span>
                 </div>
               </div>
@@ -122,7 +122,7 @@ export function CreationsList() {
         </section>
       ) : (
         <div className="plan-state">
-          <h2>No activities or events yet</h2>
+          <h2>No hangouts or events yet</h2>
           <p>Create one and its details will be saved here.</p>
         </div>
       )}
@@ -139,14 +139,16 @@ export function CreationDetail({ id }: { id: string }) {
         <StorageError message={error} retry={retry} />
       ) : !item ? (
         <div className="plan-state">
-          <h1>Couldn't find this activity or event</h1>
-          <Link href="/creations">Your activities & events</Link>
+          <h1>Couldn't find this hangout or event</h1>
+          <Link href="/creations">Your hangouts & events</Link>
         </div>
       ) : (
         <>
           <header className="plan-heading">
             <div>
-              <p className="section-eyebrow">{item.kind}</p>
+              <p className="section-eyebrow">
+                {item.kind === "activity" ? "Hangout" : "Event"}
+              </p>
               <h1>{item.title}</h1>
             </div>
           </header>
@@ -206,7 +208,7 @@ export function CreationDetail({ id }: { id: string }) {
             </Link>
           </div>
           <Link className="back-link" href="/creations">
-            Your activities & events
+            Your hangouts & events
           </Link>
         </>
       )}
@@ -240,8 +242,8 @@ export function CreationEditor({
     return (
       <Layout>
         <div className="plan-state">
-          <h1>Couldn't find this activity or event</h1>
-          <Link href="/creations">Your activities & events</Link>
+          <h1>Couldn't find this hangout or event</h1>
+          <Link href="/creations">Your hangouts & events</Link>
         </div>
       </Layout>
     );
@@ -306,7 +308,7 @@ function CreationForm({
       setSaving(false);
     }
   }
-  const title = kind === "activity" ? "activity" : "event";
+  const title = kind === "activity" ? "hangout" : "event";
   return (
     <Layout>
       <header className="plan-heading">
@@ -314,11 +316,11 @@ function CreationForm({
           <p className="section-eyebrow">MAKE IT HAPPEN</p>
           <h1>
             {existing ? "Edit" : "Create"}{" "}
-            {title === "event" ? "an event" : "an activity"}
+            {title === "event" ? "an event" : "a hangout"}
           </h1>
           <p>
             {kind === "activity"
-              ? "Give your next meetup a place and time."
+              ? "Set up a quick, casual meetup with a place and time."
               : "Add the details of your organized event."}
           </p>
         </div>

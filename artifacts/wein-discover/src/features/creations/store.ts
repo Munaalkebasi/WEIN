@@ -55,7 +55,7 @@ export function readCreations(): Creation[] {
   const parsed = z.array(schema).safeParse(JSON.parse(raw));
   if (!parsed.success)
     throw new Error(
-      "Your saved activities and events could not be read. Your stored data has been kept.",
+      "Your saved hangouts and events could not be read. Your stored data has been kept.",
     );
   return parsed.data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
