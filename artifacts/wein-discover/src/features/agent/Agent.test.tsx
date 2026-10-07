@@ -21,6 +21,38 @@ const event = {
   ticketUrl: "https://ticketmaster.com/event/abc",
 };
 afterEach(() => vi.unstubAllGlobals());
+test("changing location aborts old requests and ignores late replies without locking the new search", async () => {
+  const resolvers: Array<(response: Response) => void> = [];
+  const fetch = vi.fn((_url: string, _options: RequestInit) => new Promise<Response>(resolve => resolvers.push(resolve)));
+  vi.stubGlobal("fetch", fetch);
+  const view = render(<WeinAgent location={{city: "Vancouver"}} renderEvent={item => <p>{item.name}</p>} />);
+  fireEvent.change(screen.getByLabelText("Message WEIN"), {target: {value: "20 dollars"}});
+  fireEvent.click(screen.getByLabelText("Send message"));
+  view.rerender(<WeinAgent location={{latitude: 49, longitude: -123}} renderEvent={item => <p>{item.name}</p>} />);
+  expect(fetch.mock.calls[0][1].signal!.aborted).toBe(true);
+  expect(screen.queryByRole("status")).toBeNull();
+  fireEvent.click(screen.getByLabelText("Send message"));
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(JSON.parse(String(fetch.mock.calls[1][1].body)).search).toMatchObject({latitude:49,longitude:-123});
+  await act(async () => resolvers[0](Response.json({reply:"Stale city reply",search:{city:"Vancouver"},events:[event],searched:true})));
+  expect(screen.queryByText("Stale city reply")).toBeNull();
+  expect(screen.getByRole("status")).toBeTruthy();
+  await act(async () => resolvers[1](Response.json({reply:"New location reply",search:{latitude:49,longitude:-123},events:[],searched:true})));
+  expect(screen.getByText("New location reply")).toBeTruthy();
+  expect(screen.queryByText("Real concert")).toBeNull();
+});
+
+test("a location change clears old conversation errors and recommendations", async () => {
+  const fetch = vi.fn().mockResolvedValue(Response.json({reply:"Old location",search:{city:"Vancouver"},events:[event],searched:true}));
+  vi.stubGlobal("fetch",fetch);
+  const view = setup();
+  fireEvent.change(screen.getByLabelText("Message WEIN"),{target:{value:"music"}});
+  fireEvent.click(screen.getByLabelText("Send message"));
+  await screen.findByText("Old location");
+  view.rerender(<WeinAgent location={{city:"Surrey"}} renderEvent={item => <p>{item.name}</p>} />);
+  expect(screen.queryByText("Old location")).toBeNull();
+  expect(screen.queryByText("Real concert")).toBeNull();
+});
 const setup = () =>
   render(
     <WeinAgent
@@ -53,7 +85,7 @@ test("sends conversation refinements, shows verified recommendations and prefill
   });
   fireEvent.click(screen.getByLabelText("Send message"));
   await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
-  const body = JSON.parse(fetch.mock.calls[1][1].body);
+  const body = JSON.parse(String(fetch.mock.calls[1][1].body));
   expect(body.messages).toHaveLength(3);
   expect(body.search.maxPrice).toBe(25);
   expect(body.recommendations[0].providerId).toBe("abc");
