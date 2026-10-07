@@ -47,4 +47,3 @@ export async function basicSearch(prompt: string, previous: DiscoverySearchParam
     return { status: 503, body: { code: error instanceof DiscoveryServiceError ? error.code : "provider_error", message: "AI chat is unavailable and live event search could not load. Please retry shortly." } };
   }
 }
-
