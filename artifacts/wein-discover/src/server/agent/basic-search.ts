@@ -44,6 +44,6 @@ export async function basicSearch(prompt: string, previous: DiscoverySearchParam
     const events = result.events.filter(event => !search.radiusKm || (event.distanceKm !== undefined && event.distanceKm <= search.radiusKm));
     return { status: 200, body: { mode: "basic", reply: `AI chat is unavailable. Basic event search: ${events.length ? "these real Ticketmaster events match your filters. Listed prices are starting prices; check tickets for fees and availability." : "no verified events match your filters. Try a wider distance or a higher budget."}`, events, searched: true, search } };
   } catch (error) {
-    return { status: 503, body: { code: error instanceof DiscoveryServiceError ? error.code : "provider_error", message: "AI chat is unavailable and live event search could not load. Please retry shortly." } };
+    return { status: 503, body: { code: error instanceof DiscoveryServiceError ? error.code : "provider_error", message: error instanceof DiscoveryServiceError ? `AI chat is unavailable. ${error.message}` : "AI chat is unavailable and live event search could not load. Please retry shortly." } };
   }
 }
