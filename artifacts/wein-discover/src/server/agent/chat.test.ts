@@ -46,7 +46,7 @@ function configured() {
   process.env.OPENAI_API_KEY = "private-openai";
   process.env.TICKETMASTER_API_KEY = "private-ticketmaster";
 }
-test("validates requests and reports missing OpenAI configuration without upstream calls", async () => {
+test("validates requests and offers basic search guidance without OpenAI configuration or upstream calls", async () => {
   globalThis.fetch = async () => {
     throw new Error("unexpected call");
   };
@@ -60,7 +60,7 @@ test("validates requests and reports missing OpenAI configuration without upstre
     { messages: Array(25).fill({ role: "user", content: "test" }) },
   ])
     assert.equal((await handleAgentRequest("POST", invalid)).status, 400);
-  assert.equal((await handleAgentRequest("POST", body())).status, 503);
+  assert.equal((await handleAgentRequest("POST", body())).status, 200);
 });
 test("calls shared discovery with budget/date/distance/category and returns only provider events", async () => {
   configured();
@@ -168,7 +168,7 @@ test("surfaces provider configuration and sanitizes upstream errors", async () =
   for (const status of [401, 429, 500]) {
     globalThis.fetch = async () => new Response("private-openai", { status });
     const result = await handleAgentRequest("POST", body());
-    assert.equal(result.status, 502);
+    assert.equal(result.status, status === 429 ? 200 : 502);
     assert.doesNotMatch(JSON.stringify(result.body), /private-openai/);
   }
   globalThis.fetch = async () => {
@@ -186,3 +186,4 @@ test("bounds tool loops and does not accept fabricated action IDs", async () => 
   assert.equal(result.status, 502);
   assert.equal((result.body as any).action, undefined);
 });
+
