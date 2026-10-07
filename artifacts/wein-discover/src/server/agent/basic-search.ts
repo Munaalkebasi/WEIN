@@ -37,7 +37,7 @@ export async function basicSearch(prompt: string, previous: DiscoverySearchParam
   if (!search.city && search.latitude === undefined)
     return reply("choose your location above, then resend your request.");
   if (search.radiusKm && search.latitude === undefined)
-    return reply("choose a location on the map above so I can measure the requested distance, then resend your request.");
+    return reply("open the location picker above and choose Use my current location so I can measure distance. Alternatively, resend a budget or category without a distance.");
   try {
     const result = await searchDiscoveryEvents(search);
     // Radius guarantees require known event coordinates, not merely a provider's filter.
