@@ -40,12 +40,19 @@ export function WeinAgent({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const pending = useRef(false);
+  const requestVersion = useRef(0);
   const locationKey = JSON.stringify(location);
   const previousLocation = useRef(locationKey);
   const controller = useRef<AbortController | undefined>(undefined);
   useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
     if (previousLocation.current !== locationKey) {
+      requestVersion.current++;
+      controller.current?.abort();
+      pending.current = false;
+      setLoading(false);
+      setError("");
+      setMessages([]);
       setResult(undefined);
       previousLocation.current = locationKey;
     }
@@ -60,12 +67,14 @@ export function WeinAgent({
     pending.current = true;
     setLoading(true);
     setError("");
-    controller.current = new AbortController();
+    const version = ++requestVersion.current;
+    const requestController = new AbortController();
+    controller.current = requestController;
     try {
       const response = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: controller.current.signal,
+        signal: requestController.signal,
         body: JSON.stringify({
           messages: next.slice(-23),
           recommendations: result?.events.map((event) => ({
@@ -81,6 +90,7 @@ export function WeinAgent({
         }),
       });
       const payload = await response.json();
+      if (version !== requestVersion.current || requestController.signal.aborted) return;
       if (!response.ok)
         throw new Error(
           payload.message || "WEIN could not respond. Try again.",
@@ -92,15 +102,17 @@ export function WeinAgent({
       });
       setPrompt("");
     } catch (failure) {
-      if (!controller.current.signal.aborted)
+      if (version === requestVersion.current && !requestController.signal.aborted)
         setError(
           failure instanceof Error
             ? failure.message
             : "WEIN could not respond. Try again.",
         );
     } finally {
-      pending.current = false;
-      setLoading(false);
+      if (version === requestVersion.current) {
+        pending.current = false;
+        setLoading(false);
+      }
     }
   }
   return (
